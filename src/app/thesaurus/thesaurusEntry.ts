@@ -1,9 +1,9 @@
 import { Prefix, SparqlClass, Uri, Litteral, SparqlObject, Collection, GraphDefinition, SubPatternType, SparqlType } from 'src/app/sparql-services/sparql-parser.service';
 import { GlobalVariables } from 'src/app/configuration';
 export class SkosIdentifier extends SparqlClass{
-    @Uri()
+    @Uri
     uri: string = "";
-    @Litteral()
+    @Litteral
     name: string = "";
     
     static readonly requiredPrefixes: Prefix[] = [
@@ -72,17 +72,17 @@ export class SkosIdentifier extends SparqlClass{
 export class ThesaurusEntry extends SparqlClass{
     @SparqlObject(SkosIdentifier)
     id: SkosIdentifier = new SkosIdentifier();
-    @Litteral()
-    @Collection()
+    @Litteral
+    @Collection
     synonyms?: string[];
     @SparqlObject(SkosIdentifier)
-    @Collection()
+    @Collection
     parents: SkosIdentifier[] = <SkosIdentifier[]>[];
     @SparqlObject(SkosIdentifier)
-    @Collection()
+    @Collection
     childs: SkosIdentifier[] = <SkosIdentifier[]>[];
     @SparqlObject(SkosIdentifier)
-    @Collection()
+    @Collection
     siblings: SkosIdentifier[] = <SkosIdentifier[]>[];
 
     description? :string;

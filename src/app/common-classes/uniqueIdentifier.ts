@@ -1,4 +1,7 @@
-export class UniqueIdentifier {
+
+
+export class UniqueIdentifier  {
+
     uri: string = "";
     name: string = "";
 

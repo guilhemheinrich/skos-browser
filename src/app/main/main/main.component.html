@@ -1,0 +1,16 @@
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text">Enter/Copy a sparql endpoint url</span>
+  </div>
+  <input [(ngModel)]="loadedOntology" defaultValue="http://localhost:8890/sparql" class="form-control"
+  />
+  <div class="input-group-append">
+
+    <button type="button" class="btn btn-outline-secondary" (click)= "findAllRootElements()">Load ontology</button>
+  </div>
+</div>
+<mat-chip-list *ngIf="rootsElements">
+    <mat-chip *ngFor="let uniqueIdentifier of rootsElements" (click)="loadOntology()">
+      {{uniqueIdentifier.name}}
+    </mat-chip>
+  </mat-chip-list>

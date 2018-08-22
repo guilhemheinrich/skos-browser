@@ -334,24 +334,23 @@ export function SparqlObject(sparqlType: { new(...args: any[]): any; }) {
   })
 }
 
-export function Uri() {
-  return (function (target: Object, propertyKey: string | symbol) {
+export function Uri(target: Object, propertyKey: string | symbol) {
+
       _sparqlAttributeSetup(target, propertyKey);
       target[sparqlAtrributeName][propertyKey].type = SparqlType.IRI;
-  })
+
 }
-export function Litteral() {
-  return (function (target: Object, propertyKey: string | symbol) {
+export function Litteral(target: Object, propertyKey: string | symbol) {
+
       _sparqlAttributeSetup(target, propertyKey);
       target[sparqlAtrributeName][propertyKey].type = SparqlType.LITTERAL;
-  })
 }
 
-export function Collection() {
-  return (function (target: Object, propertyKey: string | symbol) {
+export function Collection(target: Object, propertyKey: string | symbol) {
+
       _sparqlAttributeSetup(target, propertyKey);
       target[sparqlAtrributeName][propertyKey].isCollection = true;
-  })
+
 }
 
 export function SparqlId(target: Object, propertyKey: string | symbol) {
