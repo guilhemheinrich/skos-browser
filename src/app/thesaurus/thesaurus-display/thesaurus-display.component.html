@@ -1,13 +1,12 @@
-
 <div style="position: relative;  overflow-x:hidden" [style.height]="height">
-<div *ngIf="rootRestrictions" style=" max-height:200px; margin: auto; display: inline-block">
-  <mat-chip-list>
-    <div *ngFor="let root of rootRestrictions;">
-      <mat-chip class="skosRoot" (click)="onClickIdentifier(root)" [attr.data-id]="root.uri">
-        {{ root.name }}</mat-chip>
-    </div>
-  </mat-chip-list>
-</div>
+  <div *ngIf="rootRestrictions" style=" max-height:200px; margin: auto; display: inline-block">
+    <mat-chip-list>
+      <div *ngFor="let root of rootRestrictions;">
+        <mat-chip class="skosRoot" (click)="onClickIdentifier(root)" [attr.data-id]="root.uri">
+          {{ root.name }}</mat-chip>
+      </div>
+    </mat-chip-list>
+  </div>
   <br/>
   <br/>
   <div style="position:relative">

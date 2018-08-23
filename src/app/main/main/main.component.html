@@ -2,15 +2,46 @@
   <div class="input-group-prepend">
     <span class="input-group-text">Enter/Copy a sparql endpoint url</span>
   </div>
-  <input [(ngModel)]="loadedOntology" defaultValue="http://localhost:8890/sparql" class="form-control"
-  />
+  <input [(ngModel)]="loadedOntology" defaultValue="http://localhost:8890/sparql" class="form-control" />
   <div class="input-group-append">
-
-    <button type="button" class="btn btn-outline-secondary" (click)= "findAllRootElements()">Load ontology</button>
+    <button type="button" class="btn btn-outline-secondary" (click)="loadOntology()">Load ontology</button>
   </div>
 </div>
-<mat-chip-list *ngIf="rootsElements">
-    <mat-chip *ngFor="let uniqueIdentifier of rootsElements" (click)="loadOntology()">
-      {{uniqueIdentifier.name}}
-    </mat-chip>
-  </mat-chip-list>
+
+<button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
+<div style="max-height: 200px; position: relative;  overflow-x:hidden">
+
+    <mat-chip-list *ngIf="allGraphs">
+      <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier)" [attr.data-id]="uniqueIdentifier.uri">
+        {{uniqueIdentifier.name}}
+      </mat-chip>
+    </mat-chip-list>
+</div>
+
+
+<ng-container *ngIf="selectedGraphs.length > 0">
+    <div class="input-group mb-3">
+        <select [(ngModel)]="chosenInheritanceFormat"  placeholder="Ontology inheritence format..." class="form-control" required name="ontlogyType" #ontologyType="ngModel">
+            <option *ngFor="let type of inheritanceFormat;" value="{{ type }}"> {{ type }}</option>
+        </select>
+
+        <div class="input-group-append">
+            <button  type="button" class="btn btn-outline-secondary" [disabled]="!ontologyType.valid" (click)="loadRootsElements()">Show roots elements</button>
+          </div>
+    </div>
+</ng-container>
+<div style="height: 300px; position: relative;  overflow-x:hidden">
+    <mat-chip-list *ngIf="rootsElements" style="max-height: 400px">
+      <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of rootsElements" (click)="selectedRoot(uniqueIdentifier)" [attr.data-id]="uniqueIdentifier.uri">
+        {{uniqueIdentifier.name}}
+      </mat-chip>
+    </mat-chip-list>
+</div>
+
+<br/>
+<br/>
+<br/>
+<ng-container *ngIf="selectedRoots.length > 0">
+
+  <app-thesaurus-display [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots" [height]="'500px'" ></app-thesaurus-display>
+</ng-container>

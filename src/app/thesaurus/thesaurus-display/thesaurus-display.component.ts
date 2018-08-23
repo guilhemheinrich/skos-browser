@@ -3,7 +3,7 @@ import { SparqlClientService } from '../../sparql-services/sparql-client.service
 import { SparqlParserService, GraphDefinition, QueryType } from '../../sparql-services/sparql-parser.service';
 import { ThesaurusEntry, SkosIdentifier, addRootRestriction, findRoots, findAllRoots } from '../thesaurusEntry';
 import {UniqueIdentifier} from '../../common-classes/uniqueIdentifier';
-import { MatChipList } from '@angular/material';
+import { Observable, of } from 'rxjs';
 
 // import { Input } from '../../processus/processus';
 // import { Output as pOutput } from '../../processus/processus';
@@ -19,7 +19,8 @@ export class ThesaurusDisplayComponent implements OnInit {
 
   searchField: string;
 
-
+  @Input('sparqlEndpoint')
+  sparqlEndpoint: string;
 
   @Input('rootRestrictions')
   rootRestrictions?: { uri: string, name: string }[]
@@ -37,10 +38,6 @@ export class ThesaurusDisplayComponent implements OnInit {
 
   searchResultChips: Array<UniqueIdentifier> = [];
 
-
-  graphDefinition: string = ``;
-  graphId: string = 'mermaidGraph';
-
   @Input('height')
   height: string = "500px";
 
@@ -52,14 +49,16 @@ export class ThesaurusDisplayComponent implements OnInit {
     private sparqlClient: SparqlClientService,
     private sparqlParser: SparqlParserService,
   ) {
-
+    this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
 
   }
 
   ngOnInit() {
   }
-
+  
   ngOnChanges() {
+    this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
+
     this.delayedAutocomplete();
     /* Set the initial thesaurusEntry
     Only fit the first 'root' if there is more than one
@@ -67,14 +66,13 @@ export class ThesaurusDisplayComponent implements OnInit {
     if (this.rootRestrictions !== undefined) {
       var result = this.searchUri(this.rootRestrictions[0].uri);
       result.subscribe((response => {
-        if (response['results']['bindings']) {
+        if (response['results']['bindings'] && response['results']['bindings'][0].ThesaurusEntry) {
           let toObjectify = <string>response['results']['bindings'][0].ThesaurusEntry.value;
           this.thesaurusEntry = new ThesaurusEntry(JSON.parse(toObjectify));
         }
       }));
     } else {
       let allRootsQuerry = findAllRoots();
-      console.log(allRootsQuerry);
       let rootsResults = this.sparqlClient.queryByUrlEncodedPost(allRootsQuerry);
       rootsResults.subscribe((response => {
         this.rootRestrictions = response['results']['bindings'].map((element) => {
@@ -122,7 +120,8 @@ export class ThesaurusDisplayComponent implements OnInit {
     this.result.emit(identifier);
     var result = this.searchUri(identifier.uri);
     result.subscribe((response => {
-      if (response['results']['bindings']) {
+
+      if (response['results']['bindings'] && response['results']['bindings'][0].ThesaurusEntry) {
         let toObjectify = <string>response['results']['bindings'][0].ThesaurusEntry.value;
         this.thesaurusEntry = new ThesaurusEntry(JSON.parse(toObjectify));
       }
@@ -175,7 +174,9 @@ export class ThesaurusDisplayComponent implements OnInit {
     }
     this.sparqlParser.select[0] = ' DISTINCT ' + emptySkosIdentifier.makeBindings();
     console.log(this.sparqlParser.toString());
+
     let result = this.sparqlClient.queryByUrlEncodedPost(this.sparqlParser.toString());
+    
     return result;
   }
 
@@ -205,6 +206,7 @@ export class ThesaurusDisplayComponent implements OnInit {
     // this.sparqlParser.order = '?uriSibling';
     console.log(this.sparqlParser.toString());
     let result = this.sparqlClient.queryByUrlEncodedPost(this.sparqlParser.toString());
+    // let result = of(1, 2, 3);
     return result;
   }
 

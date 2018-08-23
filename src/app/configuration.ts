@@ -12,6 +12,16 @@ export const GlobalVariables = Object.freeze({
         'foaf'  : {prefix : 'foaf',  uri : 'http://xmlns.com/foaf/0.1/' },
 
     },
+    HIERACHICAL_STRUCTURE : {
+        'owl-rdf' : {
+            'downer' : 'rdfs:subClassOf',
+            'upper'  : '^rdfs:subClassOf'
+        },
+        'skos'    : {
+            'downer' : 'skos:narrower',
+            'upper'  : 'skos:broader'
+        }
+    },
     /*
     Request used to find all top level individuals on a SKOS taxonomy
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
