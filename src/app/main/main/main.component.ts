@@ -3,7 +3,7 @@ import { SparqlClientService } from 'src/app/sparql-services/sparql-client.servi
 import { SparqlParserService, QueryType } from 'src/app/sparql-services/sparql-parser.service';
 import { SessionStorageService, SessionStorage } from 'ngx-webstorage';
 import { UniqueIdentifier } from 'src/app/common-classes/uniqueIdentifier';
-import * as Ontology from '../ontology';
+import * as Ontology from '../../common-classes/ontology';
 import { GlobalVariables } from '../../configuration';
 
 @Component({
@@ -34,6 +34,7 @@ export class MainComponent implements OnInit {
   @SessionStorage('selectedPredicates')
   selectedPredicates: string[];
 
+  lastClikedUri: string;
   constructor(
     private sparqlClient: SparqlClientService,
     private sparqlParser: SparqlParserService,
@@ -52,23 +53,23 @@ export class MainComponent implements OnInit {
   ngOnInit() {
   }
   
-  ngOnChange() {
-    
-  }
   
   ngAfterViewInit()
   {
     console.log(this.selectedRoots)
     this.selectedRoots.forEach((ui) => {
         $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
-      }); 
+      });
+    this.selectedGraphs.forEach((ui) => {
+      $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
+    }); 
   }
 
   selectedRoot(ui: UniqueIdentifier) {
     let check = this.selectedRoots.some((element) => {
         // console.log(element.name);
       return element.name == ui.name && element.uri == ui.uri})
-
+      this.lastClikedUri = ui.uri;
       let tmp;
       if (check) {
         tmp = [];

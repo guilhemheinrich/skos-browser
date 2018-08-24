@@ -14,8 +14,8 @@ export const GlobalVariables = Object.freeze({
     },
     HIERACHICAL_STRUCTURE : {
         'owl-rdf' : {
-            'downer' : 'rdfs:subClassOf',
-            'upper'  : '^rdfs:subClassOf'
+            'downer' : '^rdfs:subClassOf',
+            'upper'  : 'rdfs:subClassOf'
         },
         'skos'    : {
             'downer' : 'skos:narrower',

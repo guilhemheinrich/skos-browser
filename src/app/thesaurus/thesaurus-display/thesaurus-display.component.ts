@@ -1,7 +1,7 @@
 import { Component, OnInit, EventEmitter, Output, Input, ViewChild, ElementRef } from '@angular/core';
 import { SparqlClientService } from '../../sparql-services/sparql-client.service';
 import { SparqlParserService, GraphDefinition, QueryType } from '../../sparql-services/sparql-parser.service';
-import { ThesaurusEntry, SkosIdentifier, addRootRestriction, findRoots, findAllRoots } from '../thesaurusEntry';
+import { ThesaurusEntry, SkosIdentifier, addRootRestriction, findRoots, findAllRoots } from '../../common-classes/thesaurusEntry';
 import {UniqueIdentifier} from '../../common-classes/uniqueIdentifier';
 import { Observable, of } from 'rxjs';
 

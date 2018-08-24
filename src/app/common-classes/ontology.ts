@@ -13,20 +13,6 @@ class SkosOntology extends SparqlClass {
 }
 
 export function downer(ontologyType?: string) {
-    // let _ontologyTypes: string[] = [];
-    // if (ontologyTypes === undefined) {
-    //     _ontologyTypes = Object.keys(GlobalVariables.HIERACHICAL_STRUCTURE);
-    // } else {
-    //     ontologyTypes.forEach((type) => {
-    //         if (Object.keys(GlobalVariables.HIERACHICAL_STRUCTURE).indexOf(type) != -1) {
-    //             _ontologyTypes.push(type);
-    //         }
-    //     })
-    // }
-    // let downersPredicatesPath = _ontologyTypes.map((type) => {
-    //     return GlobalVariables.HIERACHICAL_STRUCTURE[type].downer
-    // }).join('|');
-    // return downersPredicatesPath;
     if (Object.keys(GlobalVariables.HIERACHICAL_STRUCTURE).indexOf(ontologyType) != -1) {
         return GlobalVariables.HIERACHICAL_STRUCTURE[ontologyType].downer;
     } else {
@@ -58,6 +44,43 @@ export function graphRestriction(graphsUri: UniqueIdentifier[], graphDefinition:
     newGraphDefinition += '}';
     return newGraphDefinition;
 }
+
+export interface Triple {
+    subject?: string;
+    predicate?: string;
+    object?: string;
+}
+
+export class DefaultTriple implements Triple {
+    subject: string = '';
+    predicate: string = '';
+    object: string = '';
+
+    constructor(triple?: Triple) {
+        if (triple) {
+            if (triple.subject) {
+                this.subject = triple.subject;
+            }
+            if (triple.predicate) {
+                this.predicate = triple.predicate;
+            }
+            if (triple.object) {
+                this.object = triple.object;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

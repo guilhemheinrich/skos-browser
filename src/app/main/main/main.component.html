@@ -33,7 +33,7 @@
 <div style="height: 300px; position: relative;  overflow-x:hidden">
     <mat-chip-list *ngIf="rootsElements" style="max-height: 400px">
       <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of rootsElements" (click)="selectedRoot(uniqueIdentifier)" [attr.data-id]="uniqueIdentifier.uri">
-        {{uniqueIdentifier.name}}
+        {{uniqueIdentifier.name | shortenUri }}
       </mat-chip>
     </mat-chip-list>
 </div>
@@ -41,7 +41,12 @@
 <br/>
 <br/>
 <br/>
-<ng-container *ngIf="selectedRoots.length > 0">
+<ng-container *ngIf="lastClikedUri">
 
-  <app-thesaurus-display [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots" [height]="'500px'" ></app-thesaurus-display>
+  <app-browser [selectedUri]="lastClikedUri" [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots" ></app-browser>
 </ng-container>
+
+<!-- <ng-container *ngIf="selectedRoots.length > 0" >
+
+  <app-thesaurus-display [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots" [height]="'500px'" hidden="true"></app-thesaurus-display>
+</ng-container> -->
