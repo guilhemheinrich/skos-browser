@@ -1,6 +1,7 @@
 import { Prefix } from './sparql-services/sparql-parser.service';
 
 export const GlobalVariables = Object.freeze({
+    HTTP_TIMEOUT : 5000,
     // Database relative informations
     TRIPLESTORE : {
             'dsn' : 'http://147.99.7.61:8890/sparql',

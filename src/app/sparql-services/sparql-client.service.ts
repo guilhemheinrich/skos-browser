@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
+import { concatMap, timeout, catchError, delay } from 'rxjs/operators';
 
+import {GlobalVariables} from 'src/app/configuration';
 @Injectable({
   providedIn: 'root'
 })
@@ -11,8 +13,11 @@ import { Observable } from 'rxjs';
 export class SparqlClientService {
 
   public sparqlEndpoint: string;
+  public timeout = GlobalVariables.HTTP_TIMEOUT;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+
+  }
 
   queryByGet(
       query: string,
@@ -49,7 +54,8 @@ export class SparqlClientService {
       if (namedGraphUri) {
         finalOptions["params"]["named-graph-uri"] = namedGraphUri;
       }
-      let results = this.http.get(this.sparqlEndpoint, finalOptions);
+      let results = this.http.get(this.sparqlEndpoint, finalOptions)
+      .pipe(timeout(this.timeout));
       return results;
       };
     }
@@ -85,7 +91,8 @@ export class SparqlClientService {
       body["named-graph-uri"] = namedGraphUri;
     }
 
-    let results = this.http.post(this.sparqlEndpoint,body.toString(), finalOptions);
+    let results = this.http.post(this.sparqlEndpoint,body.toString(), finalOptions)
+    .pipe(timeout(this.timeout));
     return results;
   }
 
@@ -121,7 +128,8 @@ export class SparqlClientService {
     if (namedGraphUri) {
       finalOptions["params"]["named-graph-uri"] = namedGraphUri;
     }
-    let results = this.http.post(this.sparqlEndpoint, body.toString(), finalOptions);
+    let results = this.http.post(this.sparqlEndpoint, body.toString(), finalOptions)
+    .pipe(timeout(this.timeout));
     return results;
   }
   
@@ -151,7 +159,8 @@ export class SparqlClientService {
         .set('Accept', 'application/json')
     }
     
-    let results = this.http.post(this.sparqlEndpoint,body.toString(), finalOptions);
+    let results = this.http.post(this.sparqlEndpoint,body.toString(), finalOptions)
+    .pipe(timeout(this.timeout));
     return results;
     }
   
@@ -167,7 +176,8 @@ export class SparqlClientService {
         "format": 'json'
       }
     };
-    let results = this.http.get(dbpediaUrl, options);
+    let results = this.http.get(dbpediaUrl, options)
+    .pipe(timeout(this.timeout));
     // console.log(results);
     return results;
 

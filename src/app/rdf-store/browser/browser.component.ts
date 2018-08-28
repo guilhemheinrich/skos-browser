@@ -22,6 +22,8 @@ export class BrowserComponent implements OnInit {
   @Input('selectedUri')
   selectedUri : string;
 
+  previousUri: string;
+
   allTriples: Ontology.DefaultTriple[]
   constructor(
     private sparqlClient: SparqlClientService,
@@ -38,7 +40,7 @@ export class BrowserComponent implements OnInit {
   }
 
   ngOnChanges() {
-
+    console.log('onchange');
     let result = this.searchUri(this.selectedUri);
     result.subscribe((response) => {
       this.parseResult(response);
@@ -46,8 +48,27 @@ export class BrowserComponent implements OnInit {
 
   }
 
-  searchUri(uri: string) {
+  onClickTerm(uri:string) {
+    this.previousUri = this.selectedUri;
+    this.selectedUri = uri;
+    this.ngOnChanges();
+  }
 
+  setColorStyle(rdfAndValue: Ontology.RDFValueAndType)
+  {
+    console.log(rdfAndValue.type);
+    if (rdfAndValue.type === Ontology.RDFType.Literal || rdfAndValue.type === Ontology.RDFType.Typed_literal) {
+      return '#4ce7fa';
+    } else {
+      if (rdfAndValue.value == this.selectedUri) {
+        return '#fd9cba';
+      } else {
+        return '#d9e699';
+      }
+    }
+  }
+  
+  searchUri(uri: string) {
     this.sparqlParser.clear();
     this.sparqlParser.queryType = QueryType.QUERY;
     let describeQuery = `
@@ -57,10 +78,8 @@ export class BrowserComponent implements OnInit {
       }
     `;
     let finalQuery = `SELECT DISTINCT * WHERE { ${describeQuery} }`;
-    console.log(finalQuery);
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
     let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);
-    // let result = of(1, 2, 3);
     return result;
   }
 
@@ -75,14 +94,21 @@ export class BrowserComponent implements OnInit {
     }
 
     content.forEach(element => {
-      let triple = new Ontology.DefaultTriple({subject: this.selectedUri, object: this.selectedUri});
+      console.log(element);
+      let triple = new Ontology.DefaultTriple({
+        subject: {value: this.selectedUri, type: Ontology.RDFType.IRI},
+         object: { value: this.selectedUri, type: Ontology.RDFType.IRI}
+        });
       if (element.subject) {
-        triple.subject = element.subject.value;
+        triple.subject.value = element.subject.value;
+        triple.subject.type = element.subject.type;
       }
       if (element.object) {
-        triple.object = element.object.value;
+        triple.object.value = element.object.value;
+        triple.object.type = element.object.type;
       }
-      triple.predicate = element.predicate.value;
+      triple.predicate.value = element.predicate.value;
+      triple.predicate.type = Ontology.RDFType.IRI;
       this.allTriples.push(triple)
     });
   }

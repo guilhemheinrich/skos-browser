@@ -46,15 +46,39 @@ export function graphRestriction(graphsUri: UniqueIdentifier[], graphDefinition:
 }
 
 export interface Triple {
-    subject?: string;
-    predicate?: string;
-    object?: string;
+    subject?: RDFValueAndType;
+    predicate?: RDFValueAndType;
+    object?: RDFValueAndType;
 }
 
+
+
+export enum RDFType {
+    IRI = "uri",
+    Literal = "literal",
+    Typed_literal = 'typed-literal',
+  }
+
+export class RDFValueAndType
+{
+    value: string|number = '';
+    type: RDFType = RDFType.IRI;
+
+    constructor(options? : {value?: string|number, type?: RDFType}) {
+        if (options) {
+            if (options.value) {
+                this.value = options.value;
+            }
+            if (options.type) {
+                this.type = options.type;
+            }
+        }
+    }
+}
 export class DefaultTriple implements Triple {
-    subject: string = '';
-    predicate: string = '';
-    object: string = '';
+    subject: RDFValueAndType = new RDFValueAndType();
+    predicate: RDFValueAndType = new RDFValueAndType();
+    object: RDFValueAndType = new RDFValueAndType();
 
     constructor(triple?: Triple) {
         if (triple) {

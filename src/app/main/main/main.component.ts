@@ -47,6 +47,7 @@ export class MainComponent implements OnInit {
       this.selectedGraphs = [];
     }
     this.inheritanceFormat = Object.keys(GlobalVariables.HIERACHICAL_STRUCTURE);
+    this.inheritanceFormat.push('Raw');
     console.log(this.selectedRoots);
   }
 
@@ -111,14 +112,18 @@ export class MainComponent implements OnInit {
   }
 
   loadOntology () {
+    this.rootsElements = [];
+    this.selectedRoots = [];
+    this.allGraphs = [];
+    this.selectedGraphs = [];
     this.findAllNamedGraph();
-    // this.allPredicates();
+    this.findAllPredicates();
   }
   
   loadRootsElements()
   {
-    this.findAllRootElements();
     this.findAllPredicates();
+    this.findAllRootElements();
   }
 
   findAllNamedGraph() {
@@ -137,20 +142,36 @@ export class MainComponent implements OnInit {
   }
 
   findAllRootElements() {
-    let graphDefinition = `
-    ?firstBorn ${Ontology.downer(this.chosenInheritanceFormat)} ?child .
-    OPTIONAL {
-      ?firstBorn skos:prefLabel ?label .
-      FILTER  (lang(?label) = 'en')
+    let graphDefinition;
+    if (this.chosenInheritanceFormat === 'Raw') {
+      let anyPredicate = this.predicatesElements.map((element) => 
+      {return '<' + element.predicateUri + '>';}).join('|');
+      graphDefinition = `
+      ?firstBorn (${anyPredicate}) ?child .
+      OPTIONAL {
+        ?firstBorn skos:prefLabel ?label .
+        FILTER  (lang(?label) = 'en')
+      }
+      FILTER NOT EXISTS {?god ${anyPredicate} ?firstBorn}
+      `;
+    } else {
+      graphDefinition = `
+      
+      ?firstBorn ${Ontology.downer(this.chosenInheritanceFormat)} ?child .
+      OPTIONAL {
+        ?firstBorn skos:prefLabel ?label .
+        FILTER  (lang(?label) = 'en')
+      }
+      FILTER NOT EXISTS {?god ${Ontology.downer(this.chosenInheritanceFormat)} ?firstBorn}
+      `
     }
-    FILTER NOT EXISTS {?god ${Ontology.downer(this.chosenInheritanceFormat)} ?firstBorn}
-    `
     let allRootsQuery = `
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
     SELECT DISTINCT ?firstBorn ?label WHERE {
     ${Ontology.graphRestriction(this.selectedGraphs, graphDefinition)}
     }
     `;
+    console.log(allRootsQuery);
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let rootsResults = this.sparqlClient.queryByUrlEncodedPost(allRootsQuery);
     rootsResults.subscribe((response => {
@@ -184,8 +205,8 @@ export class MainComponent implements OnInit {
   }
 
   clear() {
-    this.rootsElements = [];
     this.loadedOntology = '';
+    this.rootsElements = [];
     this.selectedRoots = [];
     this.allGraphs = [];
     this.selectedGraphs = [];

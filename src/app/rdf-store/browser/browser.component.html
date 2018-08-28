@@ -1,24 +1,39 @@
 <div style="position: relative;  overflow-x:hidden" [style.height]="height">
 
   {{selectedUri}}
+<button [disabled]="previousUri === undefined" (click)="onClickTerm(previousUri);" class="btn btn-secondary">
+  Back
+</button>
+  <ng-container *ngIf="this.allTriples">
+    <table class="table" *ngIf="this.allTriples.length > 0">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Predicate</th>
+          <th>Object</th>
+        </tr>
+      </thead>
+      <tbody>
 
-<ng-container *ngIf="this.allTriples">
-  <table class="table" *ngIf="this.allTriples.length > 0">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th>Predicate</th> 
-        <th>Object</th> 
-      </tr>
-    </thead>
-    <tbody>
-
-      <tr *ngFor="let triple of allTriples ;">
-        <td >{{ triple.subject | shortenUri }}</td>
-        <td >{{ triple.predicate | shortenUri }}</td>
-        <td >{{ triple.object | shortenUri }}</td>
-      </tr>
-    </tbody>
+        <tr *ngFor="let triple of allTriples ;">
+          <td [style.background-color]="setColorStyle(triple.subject)">
+            <a (click)="onClickTerm(triple.subject.value);">
+              {{ triple.subject.value | shortenUri }}</a>
+          </td>
+          <td [style.background-color]="setColorStyle(triple.predicate)">
+            <a (click)="onClickTerm(triple.predicate.value);">
+              {{ triple.predicate.value | shortenUri }}</a>
+          </td>
+          <td [style.background-color]="setColorStyle(triple.object)">
+            <ng-container *ngIf="triple.object.type === 'uri'; else litteralTemplate">
+              <a (click)="onClickTerm(triple.object.value);"> {{ triple.object.value | shortenUri }}</a>
+            </ng-container>
+            <ng-template #litteralTemplate>
+                {{ triple.object.value }}
+            </ng-template>
+          </td>
+        </tr>
+      </tbody>
     </table>
-</ng-container>
+  </ng-container>
 </div>
