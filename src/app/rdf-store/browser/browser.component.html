@@ -5,26 +5,44 @@
   Back
 </button>
   <ng-container *ngIf="this.allTriples">
+      <div class="table-area">
     <table class="table" *ngIf="this.allTriples.length > 0">
       <thead>
         <tr>
-          <th>Subject</th>
-          <th>Predicate</th>
-          <th>Object</th>
+          <th >Subject</th>
+          <th >Predicate</th>
+          <th >Object</th>
+        </tr>
+        <tr (input)="handleFilter($event)">
+          <th >
+            <input  [(ngModel)]="filter.subject" placeholder="Filter by subject" class="form-control" name="filterSubject" #filterSubject="ngModel"
+            />
+          </th >
+          <th >
+            <input  [(ngModel)]="filter.predicate" placeholder="Filter by predicate" class="form-control" name="filterPredicate" #filterPredicate="ngModel"
+            />
+          </th>
+          <th >
+            <input  [(ngModel)]="filter.object" placeholder="Filter by object" class="form-control" name="filterObject" #filterObject="ngModel"
+            />
+          </th>
         </tr>
       </thead>
       <tbody>
 
         <tr *ngFor="let triple of allTriples ;">
-          <td [style.background-color]="setColorStyle(triple.subject)">
+          <td [style.background-color]="setColorStyle(triple.subject)"
+          >
             <a (click)="onClickTerm(triple.subject.value);">
               {{ triple.subject.value | shortenUri }}</a>
           </td>
-          <td [style.background-color]="setColorStyle(triple.predicate)">
+          <td [style.background-color]="setColorStyle(triple.predicate)"
+          >
             <a (click)="onClickTerm(triple.predicate.value);">
               {{ triple.predicate.value | shortenUri }}</a>
           </td>
-          <td [style.background-color]="setColorStyle(triple.object)">
+          <td [style.background-color]="setColorStyle(triple.object)"
+          >
             <ng-container *ngIf="triple.object.type === 'uri'; else litteralTemplate">
               <a (click)="onClickTerm(triple.object.value);"> {{ triple.object.value | shortenUri }}</a>
             </ng-container>
@@ -35,5 +53,6 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </ng-container>
 </div>

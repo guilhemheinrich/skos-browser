@@ -14,7 +14,12 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MaterialCustomModule} from './material-custom/material-custom.module';
 import { MainComponent } from './main/main/main.component';
 import { BrowserComponent } from './rdf-store/browser/browser.component';
+
 import { ShortenUriPipe } from './shorten-uri.pipe'
+
+
+// import { DataTablesModule } from 'angular-datatables';
+// import { DatatableTestComponent } from './datatable-test/datatable-test.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +27,8 @@ import { ShortenUriPipe } from './shorten-uri.pipe'
     ThesaurusDisplayComponent,
     MainComponent,
     BrowserComponent,
-    ShortenUriPipe
+    ShortenUriPipe,
+    // DatatableTestComponent
   ],
   imports: [
     BrowserModule,
@@ -31,7 +37,8 @@ import { ShortenUriPipe } from './shorten-uri.pipe'
     ReactiveFormsModule,
     BrowserAnimationsModule,
     MaterialCustomModule,
-    HttpClientModule
+    HttpClientModule,
+    // DataTablesModule
   ],
   providers: [],
   bootstrap: [AppComponent]

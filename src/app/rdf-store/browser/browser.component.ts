@@ -5,6 +5,7 @@ import { ThesaurusEntry, SkosIdentifier, addRootRestriction, findRoots, findAllR
 import { Observable, of } from 'rxjs';
 import {UniqueIdentifier} from '../../common-classes/uniqueIdentifier';
 import * as Ontology from '../../common-classes/ontology';
+// import {floatThead } from 'floatthead';
 
 @Component({
   selector: 'app-browser',
@@ -24,6 +25,12 @@ export class BrowserComponent implements OnInit {
 
   previousUri: string;
 
+  filter = {
+    subject :  undefined,
+    predicate : undefined,
+    object : undefined,
+  }
+
   allTriples: Ontology.DefaultTriple[]
   constructor(
     private sparqlClient: SparqlClientService,
@@ -36,16 +43,24 @@ export class BrowserComponent implements OnInit {
     let result = this.searchUri(this.selectedUri);
     result.subscribe((response) => {
       this.parseResult(response);
-    })
+    });
+    
+  }
+
+  ngAfterViewChecked() {
+    // Object.defineProperty(, "floatThead");
+    $('table').floatThead();
+    $('thead').css('background', '#eee');
   }
 
   ngOnChanges() {
-    console.log('onchange');
+
     let result = this.searchUri(this.selectedUri);
     result.subscribe((response) => {
       this.parseResult(response);
-    })
-
+    });
+    $('table').floatThead();
+    $('thead').css('background', '#eee');
   }
 
   onClickTerm(uri:string) {
@@ -54,9 +69,11 @@ export class BrowserComponent implements OnInit {
     this.ngOnChanges();
   }
 
+  /*
+  Done with <http://tools.medialab.sciences-po.fr/iwanthue/>
+  */
   setColorStyle(rdfAndValue: Ontology.RDFValueAndType)
   {
-    console.log(rdfAndValue.type);
     if (rdfAndValue.type === Ontology.RDFType.Literal || rdfAndValue.type === Ontology.RDFType.Typed_literal) {
       return '#4ce7fa';
     } else {
