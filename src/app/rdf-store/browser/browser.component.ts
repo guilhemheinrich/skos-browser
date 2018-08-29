@@ -49,7 +49,7 @@ export class BrowserComponent implements OnInit {
 
   ngAfterViewChecked() {
     // Object.defineProperty(, "floatThead");
-    $('table').floatThead();
+    // $('table').floatThead();
     $('thead').css('background', '#eee');
   }
 
@@ -59,7 +59,7 @@ export class BrowserComponent implements OnInit {
     result.subscribe((response) => {
       this.parseResult(response);
     });
-    $('table').floatThead();
+    // $('table').floatThead();
     $('thead').css('background', '#eee');
   }
 

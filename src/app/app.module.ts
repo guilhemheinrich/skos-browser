@@ -19,7 +19,8 @@ import { ShortenUriPipe } from './shorten-uri.pipe'
 
 
 // import { DataTablesModule } from 'angular-datatables';
-// import { DatatableTestComponent } from './datatable-test/datatable-test.component';
+// import 'DataTables.net';
+import { DatatableTestComponent } from './datatable-test/datatable-test.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,7 @@ import { ShortenUriPipe } from './shorten-uri.pipe'
     MainComponent,
     BrowserComponent,
     ShortenUriPipe,
-    // DatatableTestComponent
+    DatatableTestComponent
   ],
   imports: [
     BrowserModule,
