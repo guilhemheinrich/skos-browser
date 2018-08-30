@@ -1,58 +1,50 @@
-<div style="position: relative;  overflow-x:hidden" [style.height]="height">
+<div style="position: relative;  overflow-x:hidden">
 
-  {{selectedUri}}
-<button [disabled]="previousUri === undefined" (click)="onClickTerm(previousUri);" class="btn btn-secondary">
-  Back
-</button>
-  <ng-container *ngIf="this.allTriples">
-      <div class="table-area">
-    <table class="table" *ngIf="this.allTriples.length > 0">
-      <thead>
-        <tr>
-          <th >Subject</th>
-          <th >Predicate</th>
-          <th >Object</th>
-        </tr>
-        <tr (input)="handleFilter($event)">
-          <th >
-            <input  [(ngModel)]="filter.subject" placeholder="Filter by subject" class="form-control" name="filterSubject" #filterSubject="ngModel"
-            />
-          </th >
-          <th >
-            <input  [(ngModel)]="filter.predicate" placeholder="Filter by predicate" class="form-control" name="filterPredicate" #filterPredicate="ngModel"
-            />
-          </th>
-          <th >
-            <input  [(ngModel)]="filter.object" placeholder="Filter by object" class="form-control" name="filterObject" #filterObject="ngModel"
-            />
-          </th>
-        </tr>
-      </thead>
-      <tbody>
+  <div class="input-group mb-3">
+    <div class="input-group-prepend">
+      <span class="input-group-text">Current subject</span>
+      <span class="input-group-text">{{selectedUri}}</span>
+    </div>
+    <div class="input-group-append">
+      <button [disabled]="previousUri === undefined" (click)="onClickTerm(previousUri);" class="btn btn-secondary">
+        Back
+      </button>
+    </div>
+  </div>
 
-        <tr *ngFor="let triple of allTriples ;">
-          <td [style.background-color]="setColorStyle(triple.subject)"
-          >
-            <a (click)="onClickTerm(triple.subject.value);">
-              {{ triple.subject.value | shortenUri }}</a>
-          </td>
-          <td [style.background-color]="setColorStyle(triple.predicate)"
-          >
-            <a (click)="onClickTerm(triple.predicate.value);">
-              {{ triple.predicate.value | shortenUri }}</a>
-          </td>
-          <td [style.background-color]="setColorStyle(triple.object)"
-          >
-            <ng-container *ngIf="triple.object.type === 'uri'; else litteralTemplate">
-              <a (click)="onClickTerm(triple.object.value);"> {{ triple.object.value | shortenUri }}</a>
+
+  <p-table [columns]="columns" [value]="this.allTriples" [scrollable]="true" scrollHeight="800px">
+    <ng-template pTemplate="header" let-columns>
+      <tr>
+        <th *ngFor="let col of columns">
+          {{col.field | titlecase}}
+        </th>
+      </tr>
+      <tr (input)="onChangeFilter();">
+        <th *ngFor="let col of columns">
+          <input type="text" pInputText [(ngModel)]="filter[col.field]" pTooltip="Filter use regex such as defined in <https://www.w3.org/TR/xpath-functions/#regex-syntax>,
+ prepending '!' will act as a negative match" />
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData let-columns="columns">
+      <tr>
+        <td *ngFor="let col of columns" [style.background-color]="setColorStyle(rowData[col.field])">
+          <div>
+            <ng-container *ngIf="rowData[col.field].type === 'uri'; else litteralTemplate">
+              <a (click)="onClickTerm(rowData[col.field].value);" [pTooltip]="rowData[col.field].value" tooltipPosition="bottom" prependTo="body"
+                style="position: relative;">
+                {{ rowData[col.field].value | shortenUri }}</a>
             </ng-container>
             <ng-template #litteralTemplate>
-                {{ triple.object.value }}
+              <span> {{ rowData[col.field].value }} </span>
             </ng-template>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-  </ng-container>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+
+
 </div>

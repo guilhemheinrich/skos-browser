@@ -9,6 +9,7 @@ import { ThesaurusDisplayComponent } from './thesaurus/thesaurus-display/thesaur
 import * as $ from 'jquery';
 
 import {Ng2Webstorage} from 'ngx-webstorage';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 //material stuff
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MaterialCustomModule} from './material-custom/material-custom.module';
@@ -20,6 +21,11 @@ import { ShortenUriPipe } from './shorten-uri.pipe'
 
 // import { DataTablesModule } from 'angular-datatables';
 // import 'DataTables.net';
+import { TableModule } from 'primeng/table';
+import {InputTextModule} from 'primeng/inputtext';
+import {TooltipModule} from 'primeng/tooltip';
+import {AccordionModule} from 'primeng/accordion';
+import {ToolbarModule} from 'primeng/toolbar';
 import { DatatableTestComponent } from './datatable-test/datatable-test.component';
 
 @NgModule({
@@ -39,6 +45,12 @@ import { DatatableTestComponent } from './datatable-test/datatable-test.componen
     BrowserAnimationsModule,
     MaterialCustomModule,
     HttpClientModule,
+    NgxDatatableModule,
+    TableModule,
+    InputTextModule,
+    TooltipModule,
+    AccordionModule,
+    ToolbarModule
     // DataTablesModule
   ],
   providers: [],

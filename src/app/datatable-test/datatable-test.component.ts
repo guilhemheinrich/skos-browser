@@ -7,6 +7,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DatatableTestComponent {
 
+  rows = [
+    { name: 'Austin', gender: 'Male', company: 'Swimlane' },
+    { name: 'Dany', gender: 'Male', company: 'KFC' },
+    { name: 'Molly', gender: 'Female', company: 'Burger King' },
+  ];
+  columns = [
+    { prop: 'name' },
+    { name: 'Gender' },
+    { name: 'Company' }
+  ];
   constructor() { }
 
   ngOnInit() {
@@ -16,12 +26,10 @@ export class DatatableTestComponent {
 
 
   loadDatatable() {
-    $(document).ready(function () {
-      $('#example').DataTable({
-        scrollY: '50vh',
-        scrollCollapse: true,
-        paging: false
-      });
-    });
+    // $('#dttest').DataTable({
+    //   scrollY: '50vh',
+    //   scrollCollapse: true,
+    //   paging: false
+    // });
   }
 }

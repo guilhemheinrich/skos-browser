@@ -16,6 +16,7 @@ export function downer(ontologyType?: string) {
     if (Object.keys(GlobalVariables.HIERACHICAL_STRUCTURE).indexOf(ontologyType) != -1) {
         return GlobalVariables.HIERACHICAL_STRUCTURE[ontologyType].downer;
     } else {
+        
         return GlobalVariables.HIERACHICAL_STRUCTURE['owl-rdf'].downer;
     }
 }
