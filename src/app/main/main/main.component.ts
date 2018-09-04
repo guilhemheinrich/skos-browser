@@ -123,8 +123,13 @@ export class MainComponent implements OnInit {
   
   loadRootsElements()
   {
-    this.findAllPredicates();
-    this.findAllRootElements();
+    let predicatesResults = this.findAllPredicates();
+    predicatesResults.subscribe((response => {
+      this.predicatesElements = response['results']['bindings'].map((element) => {
+        return { predicateUri: element.predicate.value, number: element.count.value };
+      });
+      this.findAllRootElements();
+    }));
   }
 
   findAllNamedGraph() {
@@ -135,7 +140,6 @@ export class MainComponent implements OnInit {
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let graphResults = this.sparqlClient.queryByUrlEncodedPost(allNamedGraphQuery);
     graphResults.subscribe((response => {
-      console.log(response);
       this.allGraphs = response['results']['bindings'].map((element) => {
         return { uri: element.graph.value, name: element.graph.value };
       })
@@ -149,10 +153,6 @@ export class MainComponent implements OnInit {
       {return '<' + element.predicateUri + '>';}).join('|');
       graphDefinition = `
       ?firstBorn (${anyPredicate}) ?child .
-      OPTIONAL {
-        ?firstBorn skos:prefLabel ?label .
-        FILTER  (lang(?label) = 'en')
-      }
       FILTER NOT EXISTS {?god ${anyPredicate} ?firstBorn}
       `;
     } else {
@@ -197,12 +197,8 @@ export class MainComponent implements OnInit {
     `;
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let predicatesResults = this.sparqlClient.queryByUrlEncodedPost(allPredicatesAndCount);
-    predicatesResults.subscribe((response => {
-      this.predicatesElements = response['results']['bindings'].map((element) => {
-        return { predicateUri: element.predicate.value, number: element.count.value };
-      })
-    }));
-    console.log(this.predicatesElements);
+    return predicatesResults;
+
   }
 
   clear() {

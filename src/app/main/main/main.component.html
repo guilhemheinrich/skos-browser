@@ -10,7 +10,7 @@
       </div>
     </div>
   </p-accordionTab>
-  <p-accordionTab header="Graphs">
+  <p-accordionTab header="Graphs" [disabled]="allGraphs.length == 0">
     <div style="max-height: 200px; position: relative;  overflow-x:hidden">
       <mat-chip-list *ngIf="allGraphs">
         <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier)" [attr.data-id]="uniqueIdentifier.uri">
@@ -44,12 +44,13 @@
 </p-accordion>
 
 
-
+<br/>
 <button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
 
 
 
 <ng-container *ngIf="lastClikedUri">
+    <br/>
   <!-- <app-datatable-test></app-datatable-test> -->
   <app-browser [selectedUri]="lastClikedUri" [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots"></app-browser>
 </ng-container>
