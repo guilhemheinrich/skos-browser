@@ -1,5 +1,5 @@
 <p-accordion [multiple]="true">
-  <p-accordionTab header="Endpoint" tooltip="Enter/Copy a sparql endpoint url">
+  <p-accordionTab header="Endpoint" tooltip="Enter/Copy a sparql endpoint url" [selected]="'true'">
     <div class="input-group mb-3">
       <div class="input-group-prepend">
         <span class="input-group-text">Enter/Copy a sparql endpoint url</span>
@@ -10,23 +10,27 @@
       </div>
     </div>
   </p-accordionTab>
-  <p-accordionTab header="Graphs" [disabled]="allGraphs && allGraphs.length == 0">
+  <p-accordionTab header="Graphs" [disabled]="allGraphs && allGraphs.length == 0" [selected]="allGraphs && allGraphs.length !== 0">
 
     <div class="btn-group" role="group">
-      <button id="selUnselButton" type="button" class="btn btn-outline-secondary" (click)="toggleSelectUnselectAll();">Select/Unselect all</button>
-      <button id="negRestrictButton" type="button" class="btn btn-outline-secondary" (click)="toggleActiveState($event);toggleNegativeRestriction();">Negative
-        inclusion</button>
+      <button id="selUnselButton" type="button" class="btn btn-outline-secondary" (click)="toggleSelectUnselectAll();">Select/Unselect
+        all</button>
+      <button id="negRestrictButton" type="button" class="btn btn-outline-secondary" (click)="toggleActiveState($event);toggleNegativeRestriction();">Complementary
+        inclusion
+      </button>
     </div>
-
+    <br/>
+    <br/>
     <div style="max-height: 200px; position: relative;  overflow-x:hidden">
       <mat-chip-list *ngIf="allGraphs">
-        <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier);selectUnselectAllGraphWatcher();" [attr.data-id]="uniqueIdentifier.uri">
+        <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier);selectUnselectAllGraphWatcher();"
+          [attr.data-id]="uniqueIdentifier.uri">
           {{uniqueIdentifier.name}}
         </mat-chip>
       </mat-chip-list>
     </div>
   </p-accordionTab>
-  <p-accordionTab header="Top elements" [disabled]="selectedGraphs.length == 0">
+  <p-accordionTab header="Top elements" [disabled]="selectedGraphs.length == 0" [selected]="selectedGraphs.length !== 0">
     <ng-container *ngIf="selectedGraphs.length > 0">
       <div class="input-group mb-3">
         <select [(ngModel)]="chosenInheritanceFormat" placeholder="Ontology inheritence format..." class="form-control" required
@@ -52,7 +56,7 @@
 
 
 <br/>
-<button type="button" class="btn btn-outline-secondary" (click)="clear()">Clear</button>
+<button type="button" class="btn btn-outline-secondary btn-block" (click)="clear()">Clear</button>
 
 
 

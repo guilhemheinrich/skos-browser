@@ -92,10 +92,11 @@ export class BrowserComponent implements OnInit {
 
   skeleton(uri: string) {
     let describeQuery = `
-    ?subject ?predicate ?object VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
-      (UNDEF <${uri}> UNDEF )
-      (UNDEF UNDEF <${uri}> ) }
-      
+    { SELECT ?subject ?predicate ?object WHERE {
+      ?subject ?predicate ?object VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
+        (UNDEF <${uri}> UNDEF )
+        (UNDEF UNDEF <${uri}> ) }
+    } }
     `;
     return describeQuery;
   }
@@ -145,7 +146,6 @@ export class BrowserComponent implements OnInit {
     }
 
     content.forEach(element => {
-      console.log(element);
       let triple = new Ontology.DefaultTriple({
         subject: { value: this.selectedUri, type: Ontology.RDFType.IRI },
         predicate: { value: this.selectedUri, type: Ontology.RDFType.IRI },
@@ -173,7 +173,9 @@ export class BrowserComponent implements OnInit {
     console.log(this.filter);
     this.sparqlParser.clear();
     this.sparqlParser.queryType = QueryType.QUERY;
-    let finalQuery = `SELECT DISTINCT * WHERE { ${this.skeleton(this.selectedUri)} ${this.filterOperation()}}`;
+    let finalQuery = `SELECT DISTINCT * WHERE { 
+      ${this.skeleton(this.selectedUri)} ${this.filterOperation()}
+    }`;
     console.log(finalQuery);
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
     let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);

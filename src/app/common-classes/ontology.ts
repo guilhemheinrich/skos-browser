@@ -42,7 +42,7 @@ export function upper(ontolgyTypes?: string[]) {
 export function graphRestriction(graphsUri: UniqueIdentifier[], graphDefinition: string, negativeRestriction = false) {
     let newGraphDefinition = '';
     if (negativeRestriction) {
-        newGraphDefinition = graphDefinition + ' MINUS { GRAPH ?graph {' + graphDefinition + '} VALUES ?graph {';
+        newGraphDefinition = graphDefinition + ' FILTER NOT EXISTS { GRAPH ?graph {' + graphDefinition + '} VALUES ?graph {';
         newGraphDefinition += graphsUri.map((ui) => { return '<' + ui.uri + '>'; }).join(' ');
         newGraphDefinition += '} }';
     } else {
