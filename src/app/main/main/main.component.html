@@ -10,10 +10,17 @@
       </div>
     </div>
   </p-accordionTab>
-  <p-accordionTab header="Graphs" [disabled]="allGraphs.length == 0">
+  <p-accordionTab header="Graphs" [disabled]="allGraphs && allGraphs.length == 0">
+
+    <div class="btn-group" role="group">
+      <button id="selUnselButton" type="button" class="btn btn-outline-secondary" (click)="toggleSelectUnselectAll();">Select/Unselect all</button>
+      <button id="negRestrictButton" type="button" class="btn btn-outline-secondary" (click)="toggleActiveState($event);toggleNegativeRestriction();">Negative
+        inclusion</button>
+    </div>
+
     <div style="max-height: 200px; position: relative;  overflow-x:hidden">
       <mat-chip-list *ngIf="allGraphs">
-        <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier)" [attr.data-id]="uniqueIdentifier.uri">
+        <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier);selectUnselectAllGraphWatcher();" [attr.data-id]="uniqueIdentifier.uri">
           {{uniqueIdentifier.name}}
         </mat-chip>
       </mat-chip-list>
@@ -50,7 +57,7 @@
 
 
 <ng-container *ngIf="lastClikedUri">
-    <br/>
+  <br/>
   <!-- <app-datatable-test></app-datatable-test> -->
   <app-browser [selectedUri]="lastClikedUri" [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots"></app-browser>
 </ng-container>

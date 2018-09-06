@@ -5,10 +5,10 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 
 import { ThesaurusDisplayComponent } from './thesaurus/thesaurus-display/thesaurus-display.component';
-
 import * as $ from 'jquery';
 
 import {Ng2Webstorage} from 'ngx-webstorage';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 //material stuff
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -46,6 +46,7 @@ import { DatatableTestComponent } from './datatable-test/datatable-test.componen
     MaterialCustomModule,
     HttpClientModule,
     NgxDatatableModule,
+    NgbModule,
     TableModule,
     InputTextModule,
     TooltipModule,

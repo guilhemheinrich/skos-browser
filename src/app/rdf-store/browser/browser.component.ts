@@ -92,13 +92,10 @@ export class BrowserComponent implements OnInit {
 
   skeleton(uri: string) {
     let describeQuery = `
-      {?subject ?predicate ?object VALUES ?subject { <${uri}> } } 
-      UNION {
-        ?subject ?predicate ?object VALUES ?predicate { <${uri}> }
-      }
-      UNION {
-        ?subject ?predicate ?object VALUES ?object { <${uri}> }
-      }
+    ?subject ?predicate ?object VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
+      (UNDEF <${uri}> UNDEF )
+      (UNDEF UNDEF <${uri}> ) }
+      
     `;
     return describeQuery;
   }
@@ -131,6 +128,7 @@ export class BrowserComponent implements OnInit {
     this.sparqlParser.clear();
     this.sparqlParser.queryType = QueryType.QUERY;
     let finalQuery = `SELECT DISTINCT * WHERE { ${this.skeleton(uri)} }`;
+    console.log(finalQuery);
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
     let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);
     return result;

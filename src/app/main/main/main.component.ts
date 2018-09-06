@@ -20,6 +20,10 @@ export class MainComponent implements OnInit {
   allGraphs: UniqueIdentifier[];
   @SessionStorage('selectedGraphs')
   selectedGraphs: UniqueIdentifier[];
+  @SessionStorage('negativeRestriction')
+  negativeRestriction: boolean;
+  @SessionStorage('graphSelectorAllState')
+  graphSelectorAllState: boolean;
 
   inheritanceFormat: string[];
   @SessionStorage('chosenInheritanceFormat')
@@ -30,7 +34,7 @@ export class MainComponent implements OnInit {
   selectedRoots: UniqueIdentifier[];
 
   @SessionStorage('predicatesELements')
-  predicatesElements: {predicateUri: string; cardinality: number}[];
+  predicatesElements: { predicateUri: string; cardinality: number }[];
   @SessionStorage('selectedPredicates')
   selectedPredicates: string[];
 
@@ -40,6 +44,12 @@ export class MainComponent implements OnInit {
     private sparqlParser: SparqlParserService,
     private sessionSt: SessionStorageService,
   ) {
+    if (this.negativeRestriction === null) {
+      this.negativeRestriction = false;
+    }
+    if (this.graphSelectorAllState === null) {
+      this.graphSelectorAllState = false;
+    }
     if (this.selectedRoots === null) {
       this.selectedRoots = [];
     }
@@ -54,65 +64,138 @@ export class MainComponent implements OnInit {
   ngOnInit() {
 
   }
-  
-  
-  ngAfterViewInit()
-  {
-    console.log(this.selectedRoots)
+
+ngOnChanges()
+{
+  this.selectedRoots.forEach((ui) => {
+    $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
+  });
+  this.selectedGraphs.forEach((ui) => {
+    $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
+  });
+  if (this.graphSelectorAllState === true) {
+    $('#selUnselButton').addClass('active');
+  }
+  if (this.negativeRestriction === true) {
+    $('#negRestrictButton').addClass('active');
+  }
+}
+  ngAfterViewInit() {
     this.selectedRoots.forEach((ui) => {
-        $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
-      });
+      $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
+    });
     this.selectedGraphs.forEach((ui) => {
       $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
-    }); 
+    });
+    if (this.graphSelectorAllState === true) {
+      $('#selUnselButton').addClass('active');
+    }
+    if (this.negativeRestriction === true) {
+      $('#negRestrictButton').addClass('active');
+    }
   }
 
   selectedRoot(ui: UniqueIdentifier) {
     let check = this.selectedRoots.some((element) => {
-        // console.log(element.name);
-      return element.name == ui.name && element.uri == ui.uri})
-      this.lastClikedUri = ui.uri;
-      let tmp;
-      if (check) {
-        tmp = [];
-        this.selectedRoots.forEach((element) => {
-          if (element.uri != ui.uri) {
-            tmp.push(element);
-          }
-        })
-        $(`.mainRoot[data-id="${ui.uri}"]`).removeClass('selected');
-      } else {
-      tmp = this.selectedRoots.map((element) => {return element;});
+      // console.log(element.name);
+      return element.name == ui.name && element.uri == ui.uri
+    })
+    this.lastClikedUri = ui.uri;
+    let tmp;
+    if (check) {
+      tmp = [];
+      this.selectedRoots.forEach((element) => {
+        if (element.uri != ui.uri) {
+          tmp.push(element);
+        }
+      })
+      $(`.mainRoot[data-id="${ui.uri}"]`).removeClass('selected');
+    } else {
+      tmp = this.selectedRoots.map((element) => { return element; });
       tmp.push(ui);
       $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
     }
     // Force the reinstancisation
-    this.selectedRoots = tmp.map((element) => {return element;});
+    this.selectedRoots = tmp.map((element) => { return element; });
   }
 
+  toggleActiveState($event)
+  {
+    // Add active class <https://getbootstrap.com/docs/4.0/components/buttons/#active-state>
+    if ($($event.target).hasClass('active')) {
+      $($event.target).removeClass("active");
+    } else {
+      $($event.target).addClass("active");
+    }
+  }
+
+  selectUnselectAllGraphWatcher()
+  {
+    console.log(this.graphSelectorAllState);
+    if (this.selectedGraphs.length == this.allGraphs.length) {
+      $('#selUnselButton').addClass('active');
+      this.graphSelectorAllState = true;
+    } else {
+      $('#selUnselButton').removeClass('active');
+      this.graphSelectorAllState = false;
+    }
+  }
+
+
+  toggleSelectUnselectAll() {
+    console.log(this.graphSelectorAllState);
+    this.graphSelectorAllState = !this.graphSelectorAllState;
+    this.allGraphs.forEach((uniqueIdentifier) => {
+      if (this.graphSelectorAllState) {
+        $(`.mainRoot[data-id="${uniqueIdentifier.uri}"]`).addClass('selected');
+      } else {
+        $(`.mainRoot[data-id="${uniqueIdentifier.uri}"]`).removeClass('selected');
+      }
+    });
+    if (this.graphSelectorAllState) {
+      $('#selUnselButton').addClass('active');
+      // Force the reinstancisation
+      this.selectedGraphs = this.allGraphs.map((element) => { return element; });
+    }
+    else {
+      $('#selUnselButton').removeClass('active');
+      // Force the reinstancisation
+      this.selectedGraphs = [];
+    }
+  }
+
+  toggleNegativeRestriction() {
+    this.negativeRestriction = !this.negativeRestriction;
+  }
+
+
+  /*
+    Toggle the clicked graph : add/remove select css class and add/remove it to the selectedGraphs array
+  */
   selectedGraph(ui: UniqueIdentifier) {
     let check = this.selectedGraphs.some((element) => {
-      return element.uri == ui.uri});
+      return element.uri == ui.uri
+    });
 
-      let tmp;
-      if (check) {
-        tmp = [];
-        this.selectedGraphs.forEach((element) => {
-          if (element.uri != ui.uri) {
-            tmp.push(element);
-          }
-        })
-        $(`.mainRoot[data-id="${ui.uri}"]`).removeClass('selected');
-      } else {
-      tmp = this.selectedGraphs.map((element) => {return element;});
+    let tmp;
+    if (check) {
+      tmp = [];
+      this.selectedGraphs.forEach((element) => {
+        if (element.uri != ui.uri) {
+          tmp.push(element);
+        }
+      })
+      $(`.mainRoot[data-id="${ui.uri}"]`).removeClass('selected');
+    } else {
+      tmp = this.selectedGraphs.map((element) => { return element; });
       tmp.push(ui);
       $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
     }
     // Force the reinstancisation
-    this.selectedGraphs = tmp.map((element) => {return element;});
+    this.selectedGraphs = tmp.map((element) => { return element; });
   }
 
-  loadOntology () {
+  loadOntology() {
     this.rootsElements = [];
     this.selectedRoots = [];
     this.allGraphs = [];
@@ -120,9 +203,8 @@ export class MainComponent implements OnInit {
     this.findAllNamedGraph();
     this.findAllPredicates();
   }
-  
-  loadRootsElements()
-  {
+
+  loadRootsElements() {
     let predicatesResults = this.findAllPredicates();
     predicatesResults.subscribe((response => {
       this.predicatesElements = response['results']['bindings'].map((element) => {
@@ -148,28 +230,36 @@ export class MainComponent implements OnInit {
 
   findAllRootElements() {
     let graphDefinition;
-    if (this.chosenInheritanceFormat === 'Raw') {
-      let anyPredicate = this.predicatesElements.map((element) => 
-      {return '<' + element.predicateUri + '>';}).join('|');
-      graphDefinition = `
+
+    switch (this.chosenInheritanceFormat) {
+      case 'Raw':
+        let anyPredicate = this.predicatesElements.map((element) => { return '<' + element.predicateUri + '>'; }).join('|');
+        graphDefinition = `
       ?firstBorn (${anyPredicate}) ?child .
       FILTER NOT EXISTS {?god ${anyPredicate} ?firstBorn}
       `;
-    } else {
-      graphDefinition = `
-      
-      ?firstBorn ${Ontology.downer(this.chosenInheritanceFormat)} ?child .
+        break;
+      case 'owl-rdf':
+        graphDefinition = `
+      ?individual a ?firstBorn
+      `
+        break;
+      case 'skos':
+        graphDefinition = `      
+      ?firstBorn skos:narrower ?child .
       OPTIONAL {
         ?firstBorn skos:prefLabel ?label .
         FILTER  (lang(?label) = 'en')
       }
-      FILTER NOT EXISTS {?god ${Ontology.downer(this.chosenInheritanceFormat)} ?firstBorn}
+      FILTER NOT EXISTS {?god skos:narrower ?firstBorn}
       `
+        break;
+
     }
     let allRootsQuery = `
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
     SELECT DISTINCT ?firstBorn ?label WHERE {
-    ${Ontology.graphRestriction(this.selectedGraphs, graphDefinition)}
+    ${Ontology.graphRestriction(this.selectedGraphs, graphDefinition, this.negativeRestriction)}
     }
     `;
     console.log(allRootsQuery);
@@ -180,7 +270,7 @@ export class MainComponent implements OnInit {
         if (element.label !== undefined) {
           return { uri: element.firstBorn.value, name: element.label.value };
         } else {
-          return { uri: element.firstBorn.value, name: element.firstBorn.value};
+          return { uri: element.firstBorn.value, name: element.firstBorn.value };
         }
       })
     }));
@@ -190,7 +280,7 @@ export class MainComponent implements OnInit {
     let graphDefinition = `
     ?subject ?predicate ?object
     `
-    let allPredicatesAndCount =`
+    let allPredicatesAndCount = `
       SELECT DISTINCT ?predicate (COUNT(?predicate) AS ?count) WHERE {
         ${Ontology.graphRestriction(this.selectedGraphs, graphDefinition)}
       } GROUP BY (?predicate) ORDER BY DESC(?count)
@@ -207,6 +297,9 @@ export class MainComponent implements OnInit {
     this.selectedRoots = [];
     this.allGraphs = [];
     this.selectedGraphs = [];
-
+    this.negativeRestriction = false;
+    this.graphSelectorAllState = false;
+    $('#selUnselButton').removeClass('active');
+    $('#negRestrictButton').removeClass('active');
   }
 }

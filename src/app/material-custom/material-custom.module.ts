@@ -1,13 +1,16 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {MatChipsModule} from '@angular/material';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 @NgModule({
   imports: [
     CommonModule,
-    MatChipsModule
+    MatChipsModule,
+    MatButtonToggleModule
   ],
   exports: [
-    MatChipsModule
+    MatChipsModule,
+    MatButtonToggleModule
   ],
   declarations: []
 })

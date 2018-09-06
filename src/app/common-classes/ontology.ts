@@ -39,12 +39,20 @@ export function upper(ontolgyTypes?: string[]) {
 }
 
 
-export function graphRestriction(graphsUri: UniqueIdentifier[], graphDefinition: string) {
-    let newGraphDefinition = 'GRAPH ?graph {' + graphDefinition + '} VALUES ?graph {';
-    newGraphDefinition += graphsUri.map((ui) => { return '<' + ui.uri + '>'; }).join(' ');
-    newGraphDefinition += '}';
+export function graphRestriction(graphsUri: UniqueIdentifier[], graphDefinition: string, negativeRestriction = false) {
+    let newGraphDefinition = '';
+    if (negativeRestriction) {
+        newGraphDefinition = graphDefinition + ' MINUS { GRAPH ?graph {' + graphDefinition + '} VALUES ?graph {';
+        newGraphDefinition += graphsUri.map((ui) => { return '<' + ui.uri + '>'; }).join(' ');
+        newGraphDefinition += '} }';
+    } else {
+        newGraphDefinition = 'GRAPH ?graph {' + graphDefinition + '} VALUES ?graph {';
+        newGraphDefinition += graphsUri.map((ui) => { return '<' + ui.uri + '>'; }).join(' ');
+        newGraphDefinition += '}';
+    } 
     return newGraphDefinition;
 }
+
 
 export interface Triple {
     subject?: RDFValueAndType;
