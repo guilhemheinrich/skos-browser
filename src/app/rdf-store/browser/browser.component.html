@@ -1,6 +1,14 @@
 <div style="position: relative;  overflow-x:hidden">
 
   <div class="input-group mb-3">
+    <input [(ngModel)]="searchField" placeholder="Into Subject Predicate or Object" class="form-control" />
+    <div class="input-group-append">
+      <button [disabled]="searchField === ''" (click)="browse();" class="btn btn-secondary">
+        Browse
+      </button>
+    </div>
+  </div>
+  <div class="input-group mb-3">
     <div class="input-group-prepend">
       <span class="input-group-text">Current subject</span>
       <span class="input-group-text">{{selectedUri}}</span>
@@ -12,39 +20,46 @@
     </div>
   </div>
 
-<div style="padding-bottom: 40px">
-  <p-table [columns]="columns" [value]="this.allTriples" [scrollable]="true" scrollHeight="800px" >
-    <ng-template pTemplate="header" let-columns>
-      <tr>
-        <th *ngFor="let col of columns">
-          {{col.field | titlecase}}
-        </th>
-      </tr>
-      <tr (input)="onChangeFilter();">
-        <th *ngFor="let col of columns">
-          <input type="text" pInputText [(ngModel)]="filter[col.field]" pTooltip="Filter use regex such as defined in <https://www.w3.org/TR/xpath-functions/#regex-syntax>,
+  <div style="padding-bottom: 40px">
+    <p-table [columns]="columns" [value]="this.allTriples" [scrollable]="true" scrollHeight="800px">
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th *ngFor="let col of columns">
+            {{col.field | titlecase}}
+          </th>
+        </tr>
+        <tr (input)="onChangeFilter();">
+          <th *ngFor="let col of columns">
+            <input type="text" pInputText [(ngModel)]="filter[col.field]" pTooltip="Filter use regex such as defined in <https://www.w3.org/TR/xpath-functions/#regex-syntax>,
  prepending '!' will act as a negative match" />
-        </th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-rowData let-columns="columns">
-      <tr>
-        <td *ngFor="let col of columns" [style.background-color]="setColorStyle(rowData[col.field])">
-          <div>
-            <ng-container *ngIf="rowData[col.field].type === 'uri'; else litteralTemplate">
-              <a (click)="onClickTerm(rowData[col.field].value);" [pTooltip]="rowData[col.field].value" tooltipPosition="bottom" prependTo="body"
-                style="position: relative;">
-                {{ rowData[col.field].value | shortenUri }}</a>
+            <ng-container *ngIf="col.field==='object'">
+              <p-multiSelect [options]="allLangs" appendTo="body"></p-multiSelect>
             </ng-container>
-            <ng-template #litteralTemplate>
-              <span> {{ rowData[col.field].value }} </span>
-            </ng-template>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</div>
+            <ng-container *ngIf="col.field==='object'">
+              <p-multiSelect [options]="allDatatypes" appendTo="body"></p-multiSelect>
+
+            </ng-container>
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          <td *ngFor="let col of columns" [style.background-color]="setColorStyle(rowData[col.field])">
+            <div>
+              <ng-container *ngIf="rowData[col.field].type === 'uri'; else litteralTemplate">
+                <a (click)="onClickTerm(rowData[col.field].value);" [pTooltip]="rowData[col.field].value"
+                  tooltipPosition="bottom" prependTo="body" style="position: relative;">
+                  {{ rowData[col.field].value | shortenUri }}</a>
+              </ng-container>
+              <ng-template #litteralTemplate>
+                <span> {{ rowData[col.field].value }} </span>
+              </ng-template>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 
 
 

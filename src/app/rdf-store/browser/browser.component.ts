@@ -5,6 +5,7 @@ import { ThesaurusEntry, SkosIdentifier, addRootRestriction, findRoots, findAllR
 import { Observable, of } from 'rxjs';
 import { UniqueIdentifier } from '../../common-classes/uniqueIdentifier';
 import * as Ontology from '../../common-classes/ontology';
+import {ShortenUriPipe} from 'src/app/shorten-uri.pipe';
 // import {floatThead } from 'floatthead';
 
 @Component({
@@ -24,7 +25,7 @@ export class BrowserComponent implements OnInit {
   selectedUri: string;
 
   previousUri: string;
-
+  searchField: string;
   filter = {
     "subject" : "",
     "predicate" : "",
@@ -34,7 +35,8 @@ export class BrowserComponent implements OnInit {
 
 
   allTriples: Ontology.DefaultTriple[];
-
+  allLangs: Array<{label:string, value:string}>;
+  allDatatypes: Array<{label:string, value:string}>;
   // datatable stuff
   columns = [
     { field: "subject" },
@@ -47,6 +49,7 @@ export class BrowserComponent implements OnInit {
   constructor(
     private sparqlClient: SparqlClientService,
     private sparqlParser: SparqlParserService,
+    private shortenUriPipe: ShortenUriPipe,
   ) {
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
   }
@@ -138,6 +141,8 @@ export class BrowserComponent implements OnInit {
   parseResult(tripleMatch: Observable<any>) {
     console.log(tripleMatch);
     let content = [];
+    let tmpSetAllLangs = new Set<string>();
+    let tmpSetAllDatatypes = new Set<string>();
     if (tripleMatch['results']['bindings']) {
       content = tripleMatch['results']['bindings']
       this.allTriples = [];
@@ -147,9 +152,9 @@ export class BrowserComponent implements OnInit {
 
     content.forEach(element => {
       let triple = new Ontology.DefaultTriple({
-        subject: { value: this.selectedUri, type: Ontology.RDFType.IRI },
-        predicate: { value: this.selectedUri, type: Ontology.RDFType.IRI },
-        object: { value: this.selectedUri, type: Ontology.RDFType.IRI }
+        subject: new Ontology.RDFValueAndType({ value: this.selectedUri, type: Ontology.RDFType.IRI }),
+        predicate: new Ontology.RDFValueAndType({ value: this.selectedUri, type: Ontology.RDFType.IRI }),
+        object: new Ontology.RDFValueAndType({ value: this.selectedUri, type: Ontology.RDFType.IRI })
       });
       if (element.subject) {
         triple.subject.value = element.subject.value;
@@ -158,6 +163,15 @@ export class BrowserComponent implements OnInit {
       if (element.object) {
         triple.object.value = element.object.value;
         triple.object.type = element.object.type;
+        if (element.object['xml:lang']) {
+          console.log(element);
+          triple.object.lang = element.object['xml:lang'];
+          tmpSetAllLangs.add(element.object['xml:lang']);
+        }
+        if (element.object.datatype) {
+          triple.object.datatype = element.object.datatype;
+          tmpSetAllDatatypes.add(element.object.datatype);
+        }
       }
       if (element.predicate) {
         triple.predicate.value = element.predicate.value;
@@ -167,6 +181,16 @@ export class BrowserComponent implements OnInit {
       // triple.predicate.type = Ontology.RDFType.IRI;
       this.allTriples.push(triple)
     });
+    this.allLangs = [];
+    tmpSetAllLangs.forEach((lang) => 
+  {
+    this.allLangs.push({label: lang, value: lang});
+  })
+  this.allDatatypes = [];
+  tmpSetAllDatatypes.forEach((dataset) => 
+{
+  this.allDatatypes.push({label: this.shortenUriPipe.transform(dataset), value: dataset});
+})
   }
 
   onChangeFilter() {
@@ -184,5 +208,8 @@ export class BrowserComponent implements OnInit {
     });
   }
 
+  browse()
+  {
 
+  }
 }

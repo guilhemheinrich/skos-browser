@@ -9,6 +9,10 @@
         <button type="button" class="btn btn-outline-secondary" (click)="loadOntology()">Load ontology</button>
       </div>
     </div>
+    <br/>
+<button type="button" class="btn btn-outline-secondary btn-block" (click)="clear()">Clear</button>
+
+
   </p-accordionTab>
   <p-accordionTab header="Graphs" [disabled]="allGraphs && allGraphs.length == 0" [selected]="allGraphs && allGraphs.length !== 0">
 
@@ -54,9 +58,6 @@
   </p-accordionTab>
 </p-accordion>
 
-
-<br/>
-<button type="button" class="btn btn-outline-secondary btn-block" (click)="clear()">Clear</button>
 
 
 

@@ -72,15 +72,28 @@ export class RDFValueAndType
 {
     value: string|number = '';
     type: RDFType = RDFType.IRI;
+    lang: string;
+    datatype: string;
 
-    constructor(options? : {value?: string|number, type?: RDFType}) {
+    constructor(options? : {value?: string|number, type?: RDFType, lang?:string, datatype?: string}) {
+        // if (options) {
+        //     if (options.value) {
+        //         this.value = options.value;
+        //     }
+        //     if (options.type) {
+        //         this.type = options.type;
+        //     }
+        //     if (options.lang) {
+        //         this.lang = options.lang;
+        //     }
+        //     if (options.type) {
+        //         this.type = options.type;
+        //     }
+        // }
         if (options) {
-            if (options.value) {
-                this.value = options.value;
-            }
-            if (options.type) {
-                this.type = options.type;
-            }
+            Object.getOwnPropertyNames(options).forEach((propertyName) => {
+                this[propertyName] = options[propertyName];
+            });
         }
     }
 }

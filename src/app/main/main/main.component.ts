@@ -50,6 +50,9 @@ export class MainComponent implements OnInit {
     if (this.graphSelectorAllState === null) {
       this.graphSelectorAllState = false;
     }
+    if (this.allGraphs === null) {
+      this.allGraphs = [];
+    }
     if (this.selectedRoots === null) {
       this.selectedRoots = [];
     }
@@ -143,8 +146,9 @@ ngOnChanges()
 
 
   toggleSelectUnselectAll() {
-    console.log(this.graphSelectorAllState);
+    console.log(this.allGraphs);
     this.graphSelectorAllState = !this.graphSelectorAllState;
+    if (this.allGraphs === null) return;
     this.allGraphs.forEach((uniqueIdentifier) => {
       if (this.graphSelectorAllState) {
         $(`.mainRoot[data-id="${uniqueIdentifier.uri}"]`).addClass('selected');
