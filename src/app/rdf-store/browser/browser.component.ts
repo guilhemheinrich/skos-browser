@@ -99,6 +99,7 @@ export class BrowserComponent implements OnInit {
   }
 
   skeleton(uri: string) {
+    this.sparqlParser.graphPattern.subPatterns
     // Better version : UNROLLED value
       // SELECT DISTINCT * WHERE { 
       //   { SELECT ?subject ?predicate ?object WHERE {
@@ -118,7 +119,7 @@ export class BrowserComponent implements OnInit {
     ?subject ?predicate ?object VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
       (UNDEF <${uri}> UNDEF )
       (UNDEF UNDEF <${uri}> ) }
-        `;
+        `; 
     return describeQuery;
   }
 
