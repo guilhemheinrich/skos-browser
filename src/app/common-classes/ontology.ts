@@ -51,6 +51,7 @@ export function graphRestriction(graphsUri: UniqueIdentifier[], graphDefinition:
         newGraphDefinition += '}';
     } 
     return newGraphDefinition;
+    // return graphDefinition;
 }
 
 

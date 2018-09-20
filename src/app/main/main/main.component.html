@@ -64,7 +64,8 @@
 <ng-container *ngIf="lastClikedUri">
   <br/>
   <!-- <app-datatable-test></app-datatable-test> -->
-  <app-browser [selectedUri]="lastClikedUri" [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots"></app-browser>
+  <app-browser [selectedUri]="lastClikedUri" [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots" 
+  [graphRestrictions]="selectedGraphs" [complementaryGraph]="negativeRestriction"></app-browser>
 </ng-container>
 
 <!-- <ng-container *ngIf="selectedRoots.length > 0" >
