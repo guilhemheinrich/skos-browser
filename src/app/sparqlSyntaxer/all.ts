@@ -1,3 +1,5 @@
+import {XRegExp} from 'xregexp';
+
 /*
     From <https://www.w3.org/TR/sparql11-query/#grammar>
     Intent to be as close as possible of the document
@@ -7,365 +9,569 @@ namespace sparl_grammar {
     interface stringifiable {
         toString(): string;
     }
+    
+    enum _SwitchCase {
+        'rule',
+        'string',
+        'array'
+    }
+    
+    function _switchCase(element) {
+        if (element instanceof sparqlRule) {
+            return _SwitchCase.rule
+        } else if (Array.isArray(element)){
+            return _SwitchCase.array
+        } else {
+            return _SwitchCase.string
+        }
+    }
 
-    class QueryUnit implements stringifiable {
+    function _jws(array: string[]) {
+        return array.join(' ');
+    }
+    
+    class sparqlRule {
+        // structure: Array<sparqlRule | string | Array<sparqlRule | string>>
+        structure = [];
+        
+        private _skeleton(element) 
+        {
+            switch (_switchCase(element)) {
+                case _SwitchCase.rule:
+                return (<sparqlRule>element).skeleton();
+                case _SwitchCase.string:
+                return <string>element;
+                case _SwitchCase.array:
+                return _jws(element.map(ele => {element._skeleton(ele)}));
+            }
+        }
+
+        skeleton() {
+            return _jws(this.structure.map(element => {
+                return this._skeleton(element);
+            }));
+        }
+    }
+
+
+
+    class QueryUnit extends sparqlRule {
+        structure: [Query];
+
         query: Query;
-    }
-    
-    class Query implements stringifiable {
-        prologue:Prologue;
-        queryType: SelectQuery | ConstructQuery | DescribeQuery | AskQuery;
-        valuesClause: ValuesClause;
-    }
-    
-    class UpdateUnit implements stringifiable {
-        update: Update;
-    }
-    
-    class Prologue implements stringifiable {
-        declarations?: Array< BaseDecl | PrefixDecl >
-    }
-    
-    class BaseDecl implements stringifiable {
-        iriref: IRIREF;
-        toString() {
-            return 'BASE ' + iriref;
+
+        skeleton() {
+            return this.query.skeleton();
         }
     }
     
-    class PrefixDecl implements stringifiable {}
+    class Query extends sparqlRule {
+        structure: [Prologue, SelectQuery | ConstructQuery | DescribeQuery | AskQuery, ValuesClause]
+
+        // prologue: Prologue;
+        // queryType: SelectQuery | ConstructQuery | DescribeQuery | AskQuery;
+        // valuesClause: ValuesClause;
+
+        // skeleton() {
+        //     let _tmp: string[];
+        //     _tmp.push(this.prologue.skeleton());
+        //     _tmp.push(this.queryType.skeleton());
+        //     _tmp.push(this.valuesClause.skeleton());
+        //     return _jws(_tmp);
+        // }
+    }
+    
+    class UpdateUnit extends sparqlRule {
+        structure: [Update]
+        // update: Update;
+
+        // skeleton() {
+        //     return this.update.skeleton();
+        // }
+    }
+    
+    class Prologue extends sparqlRule {
+        structure: [BaseDecl | PrefixDecl]
+        // declarations?: [BaseDecl | PrefixDecl]
+
+        // skeleton() {
+        //     return _jws(this.declarations.map(dcl => 
+        //         {
+        //             return dcl.skeleton()
+        //         }));
+        // }
+    }
+    
+    class BaseDecl extends sparqlRule {
+        structure: ['BASE', IRIREF];
+        // iriref: IRIREF;
+
+        // skeleton() {
+        //     let _tmp = ['BASE'];
+        //     _tmp.push(this.iriref.skeleton());
+        //     return _jws(_tmp);
+        // }
+    }
+    
+    class PrefixDecl extends sparqlRule {
+        structure: [PNAME_NS, IRIREF];
+        // pname_ns: PNAME_NS;
+        // iriref: IRIREF;
+
+        // skeleton() {
+        //     let _tmp = ['PREFIX'];
+        //     _tmp.push(this.pname_ns.skeleton());
+        //     _tmp.push(this.iriref.skeleton());
+        //     return _jws(_tmp);
+        // }
+    }
+    
+    class SelectQuery extends sparqlRule {
+        structure: [SelectClause, DatasetClause[], WhereClause, SolutionModifier];
+        // selectClause: SelectClause;
+        // datasetClause?: DatasetClause[];
+        // whereClause: WhereClause;
+        // solutionModifier: SolutionModifier;
+
+        // skeleton() {
+        //     let _tmp = [];
+        //     _tmp.push(this.selectClause.skeleton());
+        //     _tmp.push(_jws(this.datasetClause
+        //         .map(dts => {
+        //         return dts.skeleton()})
+        //     ));
+        //     _tmp.push(this.whereClause.skeleton());
+        //     _tmp.push(this.solutionModifier.skeleton());
+        //     return _jws(_tmp);
+        // }
+    }
+    
+    class SubSelect extends sparqlRule {
+        structure: [SelectClause, WhereClause, SolutionModifier, ValuesClause];
+        // selectClause: SelectClause;
+        // whereClause: WhereClause;
+        // solutionModifier: SolutionModifier;
+        // valuesClause: ValuesClause;
+
+        // skeleton() {
+        //     let _tmp = [];
+        //     _tmp.push(this.selectClause.skeleton());
+        //     _tmp.push(this.whereClause.skeleton());
+        //     _tmp.push(this.solutionModifier.skeleton());
+        //     _tmp.push(this.valuesClause.skeleton());
+        //     return _jws(_tmp);
+        // }
+    }
+    
+    class SelectClause extends sparqlRule {
+        structure: ['SELECT', 'DISTINCT' | 'REDUCED' | '', [Var | [Expression, 'AS', Var]] | '*']
+        // bindings: [Var | [Expression,Var]] | '*';
+        // modifiers: 'DISTINCT' | 'REDUCED' | '';
+     
+        // private _computeVariables()
+        // {
+        //     let bindingsString = '';
+            
+        //     if (this.bindings && this.bindings instanceof Array) {
+        //         bindingsString = _jws(this.bindings.map((varOrVarAExpr) => 
+        //         {
+        //             if (varOrVarAExpr instanceof Var) {
+        //                 return varOrVarAExpr.skeleton();
+        //             } else {
+        //                 return varOrVarAExpr[0].skeleton() + ' AS ' + varOrVarAExpr[1].skeleton();
+        //             }
+        //         }));
+        //     } else {
+        //         bindingsString = '*';
+        //     }
+        //     return bindingsString;
+        // }
+
+        // skeleton() {
+        //     let _tmp = ['SELECT'];
+        //     _tmp.push(this.modifiers);
+        //     _tmp.push(this._computeVariables());
+        //     return _jws(_tmp);
+        // }
+    }
+    
+    class ConstructQuery extends sparqlRule {
+
+        structure: [ 'CONSTRUCT', 
+            [ ConstructTemplate, DatasetClause[], WhereClause, SolutionModifier ] |
+            // [ DatasetClause[], SolutionModifier ] |
+            [ DatasetClause[], TriplesTemplate, SolutionModifier ] ];
+ 
+
+        // skeleton() {
+        //     let _tmp = [];
+        //     // Determine the pattern
+        //     // case 1
+        //     if (this.structure[0] instanceof ConstructTemplate) {
+        //         let _structure = <[ ConstructTemplate, DatasetClause[], WhereClause, SolutionModifier ]> this.structure;
+        //         _tmp.push('CONSTRUCT');
+        //         _tmp.push(_structure[0].skeleton());
+        //         _tmp.push(_jws(
+        //             _structure[1].map(dtscl => {
+        //             return dtscl.skeleton();
+        //             }))
+        //         );
+        //         _tmp.push(_structure[2].skeleton());
+        //         _tmp.push(_structure[3].skeleton());
+        //     } else 
+        //     // case 2
+        //     if (this.structure[1] instanceof SolutionModifier)
+        //     {
+        //         let _structure = <[ DatasetClause[], SolutionModifier ]> this.structure;
+        //         _tmp.push(_jws(
+        //             _structure[0].map(dtscl => {
+        //             return dtscl.skeleton();
+        //             }))
+        //         );
+        //         _tmp.push('WHERE');
+        //         _tmp.push(_structure[1].skeleton());
+        //     }
+        //     // case 3 
+        //     else {
+        //         let _structure = <[DatasetClause[], TriplesTemplate, SolutionModifier ]> this.structure;
+        //         _tmp.push(_jws(
+        //             _structure[0].map(dtscl => {
+        //             return dtscl.skeleton();
+        //             }))
+        //         );
+        //         _tmp.push('WHERE');
+        //         _tmp.push(_structure[1].skeleton());
+        //         _tmp.push(_structure[2].skeleton());
+        //     }
+        //     return _jws(_tmp);
+        // }
+    }
     
-    class SelectQuery implements stringifiable {}
+    class DescribeQuery extends sparqlRule {
+        
+    }
     
-    class SubSelect implements stringifiable {}
+    class AskQuery extends sparqlRule {}
     
-    class SelectClause implements stringifiable {}
+    class DatasetClause extends sparqlRule {}
     
-    class ConstructQuery implements stringifiable {}
+    class DefaultGraphClause extends sparqlRule {}
     
-    class DescribeQuery implements stringifiable {}
+    class NamedGraphClause extends sparqlRule {}
     
-    class AskQuery implements stringifiable {}
+    class SourceSelector extends sparqlRule {}
     
-    class DatasetClause implements stringifiable {}
+    class WhereClause extends sparqlRule {}
     
-    class DefaultGraphClause implements stringifiable {}
+    class SolutionModifier extends sparqlRule {}
     
-    class NamedGraphClause implements stringifiable {}
+    class GroupClause extends sparqlRule {}
     
-    class SourceSelector implements stringifiable {}
+    class GroupCondition extends sparqlRule {}
     
-    class WhereClause implements stringifiable {}
+    class HavingClause extends sparqlRule {}
     
-    class SolutionModifier implements stringifiable {}
+    class HavingCondition extends sparqlRule {}
     
-    class GroupClause implements stringifiable {}
+    class OrderClause extends sparqlRule {}
     
-    class GroupCondition implements stringifiable {}
+    class OrderCondition extends sparqlRule {}
     
-    class HavingClause implements stringifiable {}
+    class LimitOffsetClauses extends sparqlRule {}
     
-    class HavingCondition implements stringifiable {}
+    class LimitClause extends sparqlRule {}
     
-    class OrderClause implements stringifiable {}
+    class OffsetClause extends sparqlRule {}
     
-    class OrderCondition implements stringifiable {}
+    class ValuesClause extends sparqlRule {}
     
-    class LimitOffsetClauses implements stringifiable {}
+    class Update extends sparqlRule {}
     
-    class LimitClause implements stringifiable {}
+    class Update1 extends sparqlRule {}
     
-    class OffsetClause implements stringifiable {}
+    class Load extends sparqlRule {}
     
-    class ValuesClause implements stringifiable {}
+    class Clear extends sparqlRule {}
     
-    class Update implements stringifiable {}
+    class Drop extends sparqlRule {}
     
-    class Update1 implements stringifiable {}
+    class Create extends sparqlRule {}
     
-    class Load implements stringifiable {}
+    class Add extends sparqlRule {}
     
-    class Clear implements stringifiable {}
+    class Move extends sparqlRule {}
     
-    class Drop implements stringifiable {}
+    class Copy extends sparqlRule {}
     
-    class Create implements stringifiable {}
+    class InsertData extends sparqlRule {}
     
-    class Add implements stringifiable {}
+    class DeleteData extends sparqlRule {}
     
-    class Move implements stringifiable {}
+    class DeleteWhere extends sparqlRule {}
     
-    class Copy implements stringifiable {}
+    class Modify extends sparqlRule {}
     
-    class InsertData implements stringifiable {}
+    class DeleteClause extends sparqlRule {}
     
-    class DeleteData implements stringifiable {}
+    class InsertClause extends sparqlRule {}
     
-    class DeleteWhere implements stringifiable {}
+    class UsingClause extends sparqlRule {}
     
-    class Modify implements stringifiable {}
+    class GraphOrDefault extends sparqlRule {}
     
-    class DeleteClause implements stringifiable {}
+    class GraphRef extends sparqlRule {}
     
-    class InsertClause implements stringifiable {}
+    class GraphRefAll extends sparqlRule {}
     
-    class UsingClause implements stringifiable {}
+    class QuadPattern extends sparqlRule {}
     
-    class GraphOrDefault implements stringifiable {}
+    class QuadData extends sparqlRule {}
     
-    class GraphRef implements stringifiable {}
+    class Quads extends sparqlRule {}
     
-    class GraphRefAll implements stringifiable {}
+    class QuadsNotTriples extends sparqlRule {}
     
-    class QuadPattern implements stringifiable {}
+    class TriplesTemplate extends sparqlRule {}
     
-    class QuadData implements stringifiable {}
+    class GroupGraphPattern extends sparqlRule {}
     
-    class Quads implements stringifiable {}
+    class GroupGraphPatternSub extends sparqlRule {}
     
-    class QuadsNotTriples implements stringifiable {}
+    class TriplesBlock extends sparqlRule {}
     
-    class TriplesTemplate implements stringifiable {}
+    class GraphPatternNotTriples extends sparqlRule {}
     
-    class GroupGraphPattern implements stringifiable {}
+    class OptionalGraphPattern extends sparqlRule {}
     
-    class GroupGraphPatternSub implements stringifiable {}
+    class GraphGraphPattern extends sparqlRule {}
     
-    class TriplesBlock implements stringifiable {}
+    class ServiceGraphPattern extends sparqlRule {}
     
-    class GraphPatternNotTriples implements stringifiable {}
+    class Bind extends sparqlRule {}
     
-    class OptionalGraphPattern implements stringifiable {}
+    class InlineData extends sparqlRule {}
     
-    class GraphGraphPattern implements stringifiable {}
+    class DataBlock extends sparqlRule {}
     
-    class ServiceGraphPattern implements stringifiable {}
+    class InlineDataOneVar extends sparqlRule {}
     
-    class Bind implements stringifiable {}
+    class InlineDataFull extends sparqlRule {}
     
-    class InlineData implements stringifiable {}
+    class DataBlockValue extends sparqlRule {}
     
-    class DataBlock implements stringifiable {}
+    class MinusGraphPattern extends sparqlRule {}
     
-    class InlineDataOneVar implements stringifiable {}
+    class GroupUnionGraphPattern extends sparqlRule {}
     
-    class InlineDataFull implements stringifiable {}
+    class Filter extends sparqlRule {}
     
-    class DataBlockValue implements stringifiable {}
+    class Constraint extends sparqlRule {}
     
-    class MinusGraphPattern implements stringifiable {}
+    class FunctionCall extends sparqlRule {}
     
-    class GroupUnionGraphPattern implements stringifiable {}
+    class ArgList extends sparqlRule {}
     
-    class Filter implements stringifiable {}
+    class ExpressionList extends sparqlRule {}
     
-    class Constraint implements stringifiable {}
+    class ConstructTemplate extends sparqlRule {}
     
-    class FunctionCall implements stringifiable {}
+    class ConstructTriples extends sparqlRule {}
     
-    class ArgList implements stringifiable {}
+    class TriplesSameSubject extends sparqlRule {}
     
-    class ExpressionList implements stringifiable {}
+    class PropertyList extends sparqlRule {}
     
-    class ConstructTemplate implements stringifiable {}
+    class PropertyListNotEmpty extends sparqlRule {}
     
-    class ConstructTriples implements stringifiable {}
+    class Verb extends sparqlRule {}
     
-    class TriplesSameSubject implements stringifiable {}
+    class ObjectList extends sparqlRule {}
     
-    class PropertyList implements stringifiable {}
+    class Object extends sparqlRule {}
     
-    class PropertyListNotEmpty implements stringifiable {}
+    class TriplesSameSubjectPath extends sparqlRule {}
     
-    class Verb implements stringifiable {}
+    class PropertyListPath extends sparqlRule {}
     
-    class ObjectList implements stringifiable {}
-    
-    class Object implements stringifiable {}
-    
-    class TriplesSameSubjectPath implements stringifiable {}
-    
-    class PropertyListPath implements stringifiable {}
-    
-    class PropertyListPathNotEmpty implements stringifiable {}
+    class PropertyListPathNotEmpty extends sparqlRule {}
 
-    class VerbPath implements stringifiable {}
+    class VerbPath extends sparqlRule {}
 
-    class VarbSimple implements stringifiable {}
+    class VarbSimple extends sparqlRule {}
 
-    class ObjectListPath implements stringifiable {}
+    class ObjectListPath extends sparqlRule {}
 
-    class ObjectPath implements stringifiable {}
+    class ObjectPath extends sparqlRule {}
 
-    class Path implements stringifiable {}
+    class Path extends sparqlRule {}
 
-    class PathAlternative implements stringifiable {}
+    class PathAlternative extends sparqlRule {}
 
-    class PathSequence implements stringifiable {}
+    class PathSequence extends sparqlRule {}
 
-    class PathElt implements stringifiable {}
+    class PathElt extends sparqlRule {}
 
-    class PathEltOrInverse implements stringifiable {}
+    class PathEltOrInverse extends sparqlRule {}
 
-    class PathMod implements stringifiable {}
+    class PathMod extends sparqlRule {}
 
-    class PathPrimary implements stringifiable {}
+    class PathPrimary extends sparqlRule {}
 
-    class PathNegatedPropertySet implements stringifiable {}
+    class PathNegatedPropertySet extends sparqlRule {}
 
-    class PathOneInPropertySet implements stringifiable {}
+    class PathOneInPropertySet extends sparqlRule {}
 
-    class Integer implements stringifiable {}
+    class Integer extends sparqlRule {}
 
-    class TriplesNode implements stringifiable {}
+    class TriplesNode extends sparqlRule {}
 
-    class BlankNodePorpertyList implements stringifiable {}
+    class BlankNodePorpertyList extends sparqlRule {}
 
-    class TriplesNodePath implements stringifiable {}
+    class TriplesNodePath extends sparqlRule {}
 
-    class BlankNodePropertyListPath  implements stringifiable {}
+    class BlankNodePropertyListPath  extends sparqlRule {}
 
-    class Collection implements stringifiable {}
+    class Collection extends sparqlRule {}
 
-    class CollectionPath implements stringifiable {}
+    class CollectionPath extends sparqlRule {}
 
-    class GraphNode implements stringifiable {}
+    class GraphNode extends sparqlRule {}
 
-    class GraphNodePath implements stringifiable {}
+    class GraphNodePath extends sparqlRule {}
 
-    class VarOrTerm implements stringifiable {}
+    class VarOrTerm extends sparqlRule {}
 
-    class VarOrIri implements stringifiable {}
+    class VarOrIri extends sparqlRule {}
 
-    class Var implements stringifiable {}
+    class Var extends sparqlRule {}
 
-    class GraphTerm implements stringifiable {}
+    class GraphTerm extends sparqlRule {}
 
-    class Expression implements stringifiable {}
+    class Expression extends sparqlRule {}
 
-    class ConditionalOrExpression implements stringifiable {}
+    class ConditionalOrExpression extends sparqlRule {}
 
-    class ConditionalAndExpression implements stringifiable {}
+    class ConditionalAndExpression extends sparqlRule {}
 
-    class ValueLogical implements stringifiable {}
+    class ValueLogical extends sparqlRule {}
 
-    class RelationalExpression implements stringifiable {}
+    class RelationalExpression extends sparqlRule {}
 
-    class NumericExpression implements stringifiable {}
+    class NumericExpression extends sparqlRule {}
 
-    class AdditiveExpression implements stringifiable {}
+    class AdditiveExpression extends sparqlRule {}
 
-    class MultiplicativeExpression implements stringifiable {}
+    class MultiplicativeExpression extends sparqlRule {}
 
-    class UnaryExpression implements stringifiable {}
+    class UnaryExpression extends sparqlRule {}
 
-    class PrimaryExpression implements stringifiable {}
+    class PrimaryExpression extends sparqlRule {}
 
-    class BrackettedExpression implements stringifiable {}
+    class BrackettedExpression extends sparqlRule {}
 
-    class BuiltInCall implements stringifiable {}
+    class BuiltInCall extends sparqlRule {}
 
-    class RegexExpression implements stringifiable {}
+    class RegexExpression extends sparqlRule {}
 
-    class SubstringExpression implements stringifiable {}
+    class SubstringExpression extends sparqlRule {}
 
-    class StrReplaceExpression implements stringifiable {}
+    class StrReplaceExpression extends sparqlRule {}
 
-    class ExistsFunc implements stringifiable {}
+    class ExistsFunc extends sparqlRule {}
 
-    class NotExistsFunc implements stringifiable {}
+    class NotExistsFunc extends sparqlRule {}
 
-    class Aggregate implements stringifiable {}
+    class Aggregate extends sparqlRule {}
 
-    class iriOrFunction implements stringifiable {}
+    class iriOrFunction extends sparqlRule {}
 
-    class RDFLiteral implements stringifiable {}
+    class RDFLiteral extends sparqlRule {}
 
-    class NumericLiteral implements stringifiable {}
+    class NumericLiteral extends sparqlRule {}
 
-    class NumericLiteralUnsigned implements stringifiable {}
+    class NumericLiteralUnsigned extends sparqlRule {}
 
-    class NumericLiteralPositive implements stringifiable {}
+    class NumericLiteralPositive extends sparqlRule {}
 
-    class NumericLiteralNegative implements stringifiable {}
+    class NumericLiteralNegative extends sparqlRule {}
 
-    class BooleanLiteral implements stringifiable {}
+    class BooleanLiteral extends sparqlRule {}
 
-    class String implements stringifiable {}
+    class String extends sparqlRule {}
 
-    class iri implements stringifiable {}
+    class iri extends sparqlRule {}
 
-    class PrefixedName implements stringifiable {}
+    class PrefixedName extends sparqlRule {}
 
-    class BlankNode implements stringifiable {}
+    class BlankNode extends sparqlRule {}
 
-    class IRIREF implements stringifiable {}
+    class IRIREF extends sparqlRule {}
 
-    class PNAME_NS implements stringifiable {}
+    class PNAME_NS extends sparqlRule {}
 
-    class PNAME_LN implements stringifiable {}
+    class PNAME_LN extends sparqlRule {}
 
-    class BLANK_NODE_LABEL implements stringifiable {}
+    class BLANK_NODE_LABEL extends sparqlRule {}
 
-    class VAR1 implements stringifiable {}
+    class VAR1 extends sparqlRule {}
 
-    class VAR2 implements stringifiable {}
+    class VAR2 extends sparqlRule {}
 
-    class LANGTAG implements stringifiable {}
+    class LANGTAG extends sparqlRule {}
 
-    class INTEGER implements stringifiable {}
+    class INTEGER extends sparqlRule {}
 
-    class DECIMAL implements stringifiable {}
+    class DECIMAL extends sparqlRule {}
 
-    class DOUBLE implements stringifiable {}
+    class DOUBLE extends sparqlRule {}
 
-    class INTEGER_POSITIVE implements stringifiable {}
+    class INTEGER_POSITIVE extends sparqlRule {}
 
-    class DECIMAL_POSITIVE implements stringifiable {}
+    class DECIMAL_POSITIVE extends sparqlRule {}
 
-    class DOUBLE_POSITIVE implements stringifiable {}
+    class DOUBLE_POSITIVE extends sparqlRule {}
 
-    class INTEGER_NEGATIVE implements stringifiable {}
+    class INTEGER_NEGATIVE extends sparqlRule {}
 
-    class DECIMAL_NEGATIVE implements stringifiable {}
+    class DECIMAL_NEGATIVE extends sparqlRule {}
 
-    class DOUBLE_NEGATIVE implements stringifiable {}
+    class DOUBLE_NEGATIVE extends sparqlRule {}
 
-    class EXPONENT implements stringifiable {}
+    class EXPONENT extends sparqlRule {}
 
-    class STRING_LITERAL1 implements stringifiable {}
+    class STRING_LITERAL1 extends sparqlRule {}
 
-    class STRING_LITERAL2 implements stringifiable {}
+    class STRING_LITERAL2 extends sparqlRule {}
 
-    class STRING_LITERAL_LONG1 implements stringifiable {}
+    class STRING_LITERAL_LONG1 extends sparqlRule {}
 
-    class STRING_LITERAL_LONG2 implements stringifiable {}
+    class STRING_LITERAL_LONG2 extends sparqlRule {}
 
-    class ECHAR implements stringifiable {}
+    class ECHAR extends sparqlRule {}
 
-    class NIL implements stringifiable {}
+    class NIL extends sparqlRule {}
 
-    class WS implements stringifiable {}
+    class WS extends sparqlRule {}
 
-    class ANON implements stringifiable {}
+    class ANON extends sparqlRule {}
 
-    class PN_CHARS_BASE implements stringifiable {}
+    class PN_CHARS_BASE extends sparqlRule {}
 
-    class PN_CHARS_U implements stringifiable {}
+    class PN_CHARS_U extends sparqlRule {}
 
-    class VARNAME implements stringifiable {}
+    class VARNAME extends sparqlRule {}
 
-    class PN_CHARS implements stringifiable {}
+    class PN_CHARS extends sparqlRule {}
 
-    class PN_PREFIX implements stringifiable {}
+    class PN_PREFIX extends sparqlRule {}
 
-    class PN_LOCAL implements stringifiable {}
+    class PN_LOCAL extends sparqlRule {}
 
-    class PLX implements stringifiable {}
+    class PLX extends sparqlRule {}
 
-    class PERCENT implements stringifiable {}
+    class PERCENT extends sparqlRule {}
 
-    class HEX implements stringifiable {}
+    class HEX extends sparqlRule {}
 
-    class PN_LOCAL_ESC implements stringifiable {}
+    class PN_LOCAL_ESC extends sparqlRule {}
 }
