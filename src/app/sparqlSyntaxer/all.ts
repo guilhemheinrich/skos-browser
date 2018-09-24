@@ -9,6 +9,8 @@ namespace sparl_grammar {
     interface stringifiable {
         toString(): string;
     }
+
+
     
     enum _SwitchCase {
         'rule',
@@ -30,6 +32,40 @@ namespace sparl_grammar {
         return array.join(' ');
     }
     
+// From <https://www.typescriptlang.org/docs/handbook/decorators.html>
+// And <https://gist.github.com/remojansen/16c661a7afd68e22ac6e>
+    function _sparqlStructure (structure: Array<sparqlRule | string | null | Array<sparqlRule | string | null> >) {
+        return (target: typeof sparqlRule) => {
+      
+          // save a reference to the original constructor
+          var original = target;
+      
+          // a utility function to generate instances of a class
+          function construct(constructor, args) {
+            var c: any = function () {
+              return constructor.apply(this, args);
+            }
+            c.prototype = constructor.prototype;
+            return new c();
+          }
+      
+          // the new constructor behaviour
+          var f: any = function (...args) {
+
+            let originalObject = construct(original, args);
+            // originalObject.name = (<{ when: { name: string } }>filter).when.name;
+            return originalObject;
+          }
+      
+          // copy prototype so intanceof operator still works
+          f.prototype = original.prototype;
+      
+          // return new constructor (will override original)
+          return f;
+        }
+      }
+
+
     class sparqlRule {
         // structure: Array<sparqlRule | string | Array<sparqlRule | string>>
         structure = [];
@@ -57,6 +93,7 @@ namespace sparl_grammar {
 
     class QueryUnit extends sparqlRule {
         structure: [Query];
+        structureO: {query: Query} | {notso: string};
 
         query: Query;
 
@@ -66,7 +103,7 @@ namespace sparl_grammar {
     }
     
     class Query extends sparqlRule {
-        structure: [Prologue, SelectQuery | ConstructQuery | DescribeQuery | AskQuery, ValuesClause]
+        structure: [Prologue, SelectQuery | ConstructQuery | DescribeQuery | AskQuery, ValuesClause];
 
         // prologue: Prologue;
         // queryType: SelectQuery | ConstructQuery | DescribeQuery | AskQuery;
@@ -82,7 +119,7 @@ namespace sparl_grammar {
     }
     
     class UpdateUnit extends sparqlRule {
-        structure: [Update]
+        structure: [Update];
         // update: Update;
 
         // skeleton() {
@@ -91,9 +128,8 @@ namespace sparl_grammar {
     }
     
     class Prologue extends sparqlRule {
-        structure: [BaseDecl | PrefixDecl]
-        // declarations?: [BaseDecl | PrefixDecl]
-
+        structure: [BaseDecl | PrefixDecl];
+        // declarations?: [BaseDecl | PrefixDecl
         // skeleton() {
         //     return _jws(this.declarations.map(dcl => 
         //         {
@@ -164,7 +200,7 @@ namespace sparl_grammar {
     }
     
     class SelectClause extends sparqlRule {
-        structure: ['SELECT', 'DISTINCT' | 'REDUCED' | '', [Var | [Expression, 'AS', Var]] | '*']
+        structure: ['SELECT', 'DISTINCT' | 'REDUCED' | null, Array<Var | [Expression, 'AS', Var]> | '*'];
         // bindings: [Var | [Expression,Var]] | '*';
         // modifiers: 'DISTINCT' | 'REDUCED' | '';
      
@@ -197,10 +233,10 @@ namespace sparl_grammar {
     
     class ConstructQuery extends sparqlRule {
 
-        structure: [ 'CONSTRUCT', 
+        structure: ['CONSTRUCT', 
             [ ConstructTemplate, DatasetClause[], WhereClause, SolutionModifier ] |
             // [ DatasetClause[], SolutionModifier ] |
-            [ DatasetClause[], TriplesTemplate, SolutionModifier ] ];
+            [ DatasetClause[], TriplesTemplate | null, SolutionModifier ] ];
  
 
         // skeleton() {
@@ -248,50 +284,93 @@ namespace sparl_grammar {
     }
     
     class DescribeQuery extends sparqlRule {
-        
+        structure: ['DESCRIBE', VarOrIri[] | '*', DatasetClause[], WhereClause | null, SolutionModifier];
     }
     
-    class AskQuery extends sparqlRule {}
+    class AskQuery extends sparqlRule {
+        structure: ['ASK', DatasetClause[], WhereClause, SolutionModifier];
+    }
     
-    class DatasetClause extends sparqlRule {}
+    class DatasetClause extends sparqlRule {
+        structure: ['FROM', DefaultGraphClause | NamedGraphClause];
+    }
     
-    class DefaultGraphClause extends sparqlRule {}
+    class DefaultGraphClause extends sparqlRule {
+        structure: [SourceSelector];
+    }
     
-    class NamedGraphClause extends sparqlRule {}
+    class NamedGraphClause extends sparqlRule {
+        structure: ['NAMED', SourceSelector];
+    }
     
-    class SourceSelector extends sparqlRule {}
+    class SourceSelector extends sparqlRule {
+        structure: [iri]
+    }
     
-    class WhereClause extends sparqlRule {}
+    class WhereClause extends sparqlRule {
+        structure: ['WHERE' | null, GroupGraphPattern];
+    }
     
-    class SolutionModifier extends sparqlRule {}
+    class SolutionModifier extends sparqlRule {
+        structure: [GroupClause | null, HavingClause | null, OrderClause | null, LimitOffsetClauses | null];
+    }
     
-    class GroupClause extends sparqlRule {}
+    class GroupClause extends sparqlRule {
+        structure: ['GROUP', 'BY', GroupCondition[] | null];
+    }
     
-    class GroupCondition extends sparqlRule {}
+    class GroupCondition extends sparqlRule {
+        structure: [BuiltInCall | FunctionCall | ['(', Expression, ['AS', Var] | null, ')'] | Var ]
+    }
     
-    class HavingClause extends sparqlRule {}
+    class HavingClause extends sparqlRule {
+        structure: ['HAVING', HavingCondition | null]
+    }
     
-    class HavingCondition extends sparqlRule {}
+    class HavingCondition extends sparqlRule {
+        structure: [Constraint]
+    }
     
-    class OrderClause extends sparqlRule {}
+    class OrderClause extends sparqlRule {
+        structure: ['OFFSET', INTEGER]
+    }
     
-    class OrderCondition extends sparqlRule {}
+    class OrderCondition extends sparqlRule {
+        structure: ['ASC' | 'DESC', BrackettedExpression] | [Constraint | Var]
+
+    }
     
-    class LimitOffsetClauses extends sparqlRule {}
+    class LimitOffsetClauses extends sparqlRule {
+        structure: [LimitClause, OffsetClause | null] | [OffsetClause, LimitClause | null]
+    }
     
-    class LimitClause extends sparqlRule {}
+    class LimitClause extends sparqlRule {
+        structure: ['LIMIT', INTEGER];
+    }
     
-    class OffsetClause extends sparqlRule {}
+    class OffsetClause extends sparqlRule {
+        structure: ['OFFSET', INTEGER]
+    }
     
-    class ValuesClause extends sparqlRule {}
+    class ValuesClause extends sparqlRule {
+        structure: ['VALUES', DataBlock] | null
+    }
     
-    class Update extends sparqlRule {}
+    class Update extends sparqlRule {
+        structure: [Prologue, [Update1, [';', Update] | null] | null] 
+    }
     
-    class Update1 extends sparqlRule {}
+    class Update1 extends sparqlRule {
+        structure: [Load | Clear | Drop | Add | Move | Copy | Create | InsertData | DeleteData | DeleteWhere | Modify]
+    }
     
-    class Load extends sparqlRule {}
+    class Load extends sparqlRule {
+        structure: ['LOAD', 'SILENT' | null, iri, [';', GraphRef] | null]
+    }
     
-    class Clear extends sparqlRule {}
+    class Clear extends sparqlRule {
+        // structure:
+    }
     
     class Drop extends sparqlRule {}
     
