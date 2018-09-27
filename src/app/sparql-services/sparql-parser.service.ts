@@ -129,7 +129,7 @@ export class GraphDefinition {
   subPatterns?: Array<[GraphDefinition, SubPatternType]>;
   namedGraph?: string;
   prefixes?: Array<Prefix>;
-
+  
   constructor(
     options: IGraphDefinition = {}
   ) {

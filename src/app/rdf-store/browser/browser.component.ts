@@ -113,10 +113,11 @@ export class BrowserComponent implements OnInit {
       //   } }
       //   }
 
-
+// Problem : wraping it in a graph is need to work with the actual filter clause ... but it will not work with the graph restriction then
 
     let describeQuery = `
-    ?subject ?predicate ?object VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
+    ?subject ?predicate ?object
+    VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
       (UNDEF <${uri}> UNDEF )
       (UNDEF UNDEF <${uri}> ) }
         `; 
@@ -213,6 +214,7 @@ export class BrowserComponent implements OnInit {
     }`;
 
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
+    console.log(finalQuery);
     let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);
     result.subscribe((response) => {
       this.parseResult(response);
