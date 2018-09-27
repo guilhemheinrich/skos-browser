@@ -73,13 +73,20 @@ export class BrowserComponent implements OnInit {
     result.subscribe((response) => {
       this.parseResult(response);
     });
-
+    // Reset the filter
+    this.filter = {
+      "subject": "",
+      "predicate": "",
+      "object": ""
+    }
   }
 
   onClickTerm(uri: string) {
     this.previousUri = this.selectedUri;
     this.selectedUri = uri;
     this.ngOnChanges();
+
+
   }
 
 
@@ -99,28 +106,28 @@ export class BrowserComponent implements OnInit {
   }
 
   skeleton(uri: string) {
-    this.sparqlParser.graphPattern.subPatterns
+    // this.sparqlParser.graphPattern.subPatterns
     // Better version : UNROLLED value
-      // SELECT DISTINCT * WHERE { 
-      //   { SELECT ?subject ?predicate ?object WHERE {
-      //    GRAPH ?graph { ?subject ?predicate ?object  VALUES (?subject) {( <http://lod.nal.usda.gov/nalt/127293>)} } VALUES ?graph {<http://ECPP_models/processus_added/set/> <http://www.example.com/my-graph>}
-      //   } }UNION 
-      //   { SELECT ?subject ?predicate ?object WHERE {
-      //    GRAPH ?graph { ?subject ?predicate ?object  VALUES (?predicate) {( <http://lod.nal.usda.gov/nalt/127293>)} } VALUES ?graph {<http://ECPP_models/processus_added/set/> <http://www.example.com/my-graph>}
-      //   } } UNION 
-      //   { SELECT ?subject ?predicate ?object WHERE {
-      //    GRAPH ?graph { ?subject ?predicate ?object  VALUES (?object) {( <http://lod.nal.usda.gov/nalt/127293>)} } VALUES ?graph {<http://ECPP_models/processus_added/set/> <http://www.example.com/my-graph>}
-      //   } }
-      //   }
+    // SELECT DISTINCT * WHERE { 
+    //   { SELECT ?subject ?predicate ?object WHERE {
+    //    GRAPH ?graph { ?subject ?predicate ?object  VALUES (?subject) {( <http://lod.nal.usda.gov/nalt/127293>)} } VALUES ?graph {<http://ECPP_models/processus_added/set/> <http://www.example.com/my-graph>}
+    //   } }UNION 
+    //   { SELECT ?subject ?predicate ?object WHERE {
+    //    GRAPH ?graph { ?subject ?predicate ?object  VALUES (?predicate) {( <http://lod.nal.usda.gov/nalt/127293>)} } VALUES ?graph {<http://ECPP_models/processus_added/set/> <http://www.example.com/my-graph>}
+    //   } } UNION 
+    //   { SELECT ?subject ?predicate ?object WHERE {
+    //    GRAPH ?graph { ?subject ?predicate ?object  VALUES (?object) {( <http://lod.nal.usda.gov/nalt/127293>)} } VALUES ?graph {<http://ECPP_models/processus_added/set/> <http://www.example.com/my-graph>}
+    //   } }
+    //   }
 
-// Problem : wraping it in a graph is need to work with the actual filter clause ... but it will not work with the graph restriction then
+    // Problem : wraping it in a graph is need to work with the actual filter clause ... but it will not work with the graph restriction then
 
     let describeQuery = `
     ?subject ?predicate ?object
     VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
       (UNDEF <${uri}> UNDEF )
       (UNDEF UNDEF <${uri}> ) }
-        `; 
+        `;
     return describeQuery;
   }
 
@@ -208,9 +215,9 @@ export class BrowserComponent implements OnInit {
   }
 
   onChangeFilter() {
-    let tmpQuery = `${this.skeleton(this.selectedUri)} ${this.filterOperation()}`
+    let tmpQuery = `${Ontology.graphRestriction(this.graphRestrictions, this.skeleton(this.selectedUri), this.complementaryGraph)}`
     let finalQuery = `SELECT DISTINCT * WHERE { 
-      ${Ontology.graphRestriction(this.graphRestrictions, tmpQuery, this.complementaryGraph)}
+      {SELECT * WHERE { ${tmpQuery} } } ${this.filterOperation()} 
     }`;
 
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
@@ -223,20 +230,19 @@ export class BrowserComponent implements OnInit {
 
   browse() {
     let tmpQuery = `
-    { SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object .  FILTER regex(STR(?subject),"${this.searchField}","i") } }
-    UNION { SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object .  FILTER regex(STR(?predicate),"${this.searchField}","i") } }
-    UNION  { SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object .  FILTER regex(STR(?object),"${this.searchField}","i") } }
+    { SELECT ?subject ?predicate ?object WHERE { ${Ontology.graphRestriction(this.graphRestrictions, '?subject ?predicate ?object', this.complementaryGraph)} .  FILTER regex(STR(?subject),"${this.searchField}","i") } }
+    UNION { SELECT ?subject ?predicate ?object WHERE { ${Ontology.graphRestriction(this.graphRestrictions, '?subject ?predicate ?object', this.complementaryGraph)} .  FILTER regex(STR(?predicate),"${this.searchField}","i") } }
+    UNION  { SELECT ?subject ?predicate ?object WHERE { ${Ontology.graphRestriction(this.graphRestrictions, '?subject ?predicate ?object', this.complementaryGraph)}  .  FILTER regex(STR(?object),"${this.searchField}","i") } }
     `;
     let finalQuery = "";
-    if (this.searchField) {
-      finalQuery = `
-      SELECT DISTINCT ?subject ?predicate ?object WHERE {
-        ${Ontology.graphRestriction(this.graphRestrictions, tmpQuery, this.complementaryGraph)} }
-        }
-      `;
-    }
+    finalQuery = `
+    SELECT DISTINCT ?subject ?predicate ?object WHERE {
+      ${tmpQuery} }
+      }
+    `;
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
     let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);
+    console.log(finalQuery);
     result.subscribe((response) => {
       /* not robust : we assume that the outputs are "?subject", "?predicate" and "?object"
       in order to parse them

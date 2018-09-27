@@ -1,7 +1,7 @@
 <div style="position: relative;  overflow-x:hidden">
 
   <div class="input-group mb-3">
-    <input [(ngModel)]="searchField" placeholder="Into Subject Predicate or Object" class="form-control" />
+    <input [(ngModel)]="searchField" placeholder="Search for Subject Predicate or Object" class="form-control" />
     <div class="input-group-append">
       <button [disabled]="searchField === ''" (click)="browse();" class="btn btn-secondary">
         Browse
@@ -30,15 +30,17 @@
         </tr>
         <tr (input)="onChangeFilter();">
           <th *ngFor="let col of columns">
-            <input type="text" pInputText [(ngModel)]="filter[col.field]" pTooltip="Filter use regex such as defined in <https://www.w3.org/TR/xpath-functions/#regex-syntax>,
+            <div class="input-group mb-3">
+              <input type="text" pInputText [(ngModel)]="filter[col.field]" pTooltip="Filter use regex such as defined in <https://www.w3.org/TR/xpath-functions/#regex-syntax>,
  prepending '!' will act as a negative match" />
-            <ng-container *ngIf="col.field==='object'">
-              <p-multiSelect [options]="allLangs" appendTo="body"></p-multiSelect>
-            </ng-container>
-            <ng-container *ngIf="col.field==='object'">
-              <p-multiSelect [options]="allDatatypes" appendTo="body"></p-multiSelect>
+              <ng-container *ngIf="col.field==='object' && allLangs && allLangs.length !== 0">
+                <p-multiSelect [options]="allLangs" appendTo="body" ></p-multiSelect>
+              </ng-container>
+              <ng-container *ngIf="col.field==='object' && allDatatypes && allDatatypes.length !== 0">
+                <p-multiSelect [options]="allDatatypes" appendTo="body" optionLabel="Datatype"></p-multiSelect>
 
-            </ng-container>
+              </ng-container>
+            </div>
           </th>
         </tr>
       </ng-template>
