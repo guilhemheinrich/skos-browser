@@ -15,6 +15,8 @@ export class MainComponent implements OnInit {
 
   @SessionStorage('loadedOntology')
   loadedOntology: string;
+  @SessionStorage('validEndpoint')
+  validEndpoint: boolean = false;
 
   @SessionStorage('allGraphs')
   allGraphs: UniqueIdentifier[];
@@ -68,21 +70,20 @@ export class MainComponent implements OnInit {
 
   }
 
-ngOnChanges()
-{
-  this.selectedRoots.forEach((ui) => {
-    $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
-  });
-  this.selectedGraphs.forEach((ui) => {
-    $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
-  });
-  if (this.graphSelectorAllState === true) {
-    $('#selUnselButton').addClass('active');
+  ngOnChanges() {
+    this.selectedRoots.forEach((ui) => {
+      $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
+    });
+    this.selectedGraphs.forEach((ui) => {
+      $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
+    });
+    if (this.graphSelectorAllState === true) {
+      $('#selUnselButton').addClass('active');
+    }
+    if (this.negativeRestriction === true) {
+      $('#negRestrictButton').addClass('active');
+    }
   }
-  if (this.negativeRestriction === true) {
-    $('#negRestrictButton').addClass('active');
-  }
-}
   ngAfterViewInit() {
     this.selectedRoots.forEach((ui) => {
       $(`.mainRoot[data-id="${ui.uri}"]`).addClass('selected');
@@ -122,8 +123,7 @@ ngOnChanges()
     this.selectedRoots = tmp.map((element) => { return element; });
   }
 
-  toggleActiveState($event)
-  {
+  toggleActiveState($event) {
     // Add active class <https://getbootstrap.com/docs/4.0/components/buttons/#active-state>
     if ($($event.target).hasClass('active')) {
       $($event.target).removeClass("active");
@@ -132,8 +132,7 @@ ngOnChanges()
     }
   }
 
-  selectUnselectAllGraphWatcher()
-  {
+  selectUnselectAllGraphWatcher() {
     console.log(this.graphSelectorAllState);
     if (this.selectedGraphs.length == this.allGraphs.length) {
       $('#selUnselButton').addClass('active');
@@ -204,18 +203,31 @@ ngOnChanges()
     this.selectedRoots = [];
     this.allGraphs = [];
     this.selectedGraphs = [];
-    this.findAllNamedGraph();
-    this.findAllPredicates();
+    this.checkData();
+    // this.findAllNamedGraph();
+    // this.findAllPredicates();
   }
 
   loadRootsElements() {
-    let predicatesResults = this.findAllPredicates();
-    predicatesResults.subscribe((response => {
-      this.predicatesElements = response['results']['bindings'].map((element) => {
-        return { predicateUri: element.predicate.value, number: element.count.value };
-      });
-      this.findAllRootElements();
-    }));
+    this.findAllRootElements();
+    // let predicatesResults = this.findAllPredicates();
+    // predicatesResults.subscribe((response => {
+    //   this.predicatesElements = response['results']['bindings'].map((element) => {
+    //     return { predicateUri: element.predicate.value, number: element.count.value };
+    //   });
+    // }));
+  }
+
+  checkData() {
+    let checkValid = `
+    SELECT * WHERE { ?s ?p ?o } LIMIT 1
+    `
+    this.sparqlClient.sparqlEndpoint = this.loadedOntology;
+    let checksResults = this.sparqlClient.queryByUrlEncodedPost(checkValid);
+    checksResults.subscribe((response) => {
+      // console.log(response)
+      this.validEndpoint = (response['results']['bindings'].length == 1);
+    })
   }
 
   findAllNamedGraph() {
@@ -225,6 +237,7 @@ ngOnChanges()
     }`;
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let graphResults = this.sparqlClient.queryByUrlEncodedPost(allNamedGraphQuery);
+    console.log(allNamedGraphQuery)
     graphResults.subscribe((response => {
       this.allGraphs = response['results']['bindings'].map((element) => {
         return { uri: element.graph.value, name: element.graph.value };
@@ -239,23 +252,32 @@ ngOnChanges()
       case 'Raw':
         let anyPredicate = this.predicatesElements.map((element) => { return '<' + element.predicateUri + '>'; }).join('|');
         graphDefinition = `
-      ?firstBorn (${anyPredicate}) ?child .
-      FILTER NOT EXISTS {?god ${anyPredicate} ?firstBorn}
+      ?firstBorn rdf:type\\^rdf:type ?child .
+      FILTER NOT EXISTS {?god rdf:type\\^rdf:type ?firstBorn}
+      OPTIONAL {
+        ?firstBorn skos:prefLabel ?label .
+        FILTER  (lang(?label) = 'en')
+      }
       `;
         break;
       case 'owl-rdf':
         graphDefinition = `
       ?individual a ?firstBorn
+      OPTIONAL {
+        ?firstBorn skos:prefLabel ?label .
+        FILTER  (lang(?label) = 'en')
+      }
       `
         break;
       case 'skos':
-        graphDefinition = `      
+        graphDefinition = `  
       ?firstBorn skos:narrower ?child .
       OPTIONAL {
         ?firstBorn skos:prefLabel ?label .
         FILTER  (lang(?label) = 'en')
       }
       FILTER NOT EXISTS {?god skos:narrower ?firstBorn}
+    }
       `
         break;
 
@@ -264,7 +286,7 @@ ngOnChanges()
     PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
     SELECT DISTINCT ?firstBorn ?label WHERE {
     ${Ontology.graphRestriction(this.selectedGraphs, graphDefinition, this.negativeRestriction)}
-    }
+    } LIMIT 100
     `;
     console.log(allRootsQuery);
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
@@ -303,6 +325,7 @@ ngOnChanges()
     this.selectedGraphs = [];
     this.negativeRestriction = false;
     this.graphSelectorAllState = false;
+    this.validEndpoint = true;
     $('#selUnselButton').removeClass('active');
     $('#negRestrictButton').removeClass('active');
   }

@@ -33,12 +33,11 @@
             <div class="input-group mb-3">
               <input type="text" pInputText [(ngModel)]="filter[col.field]" pTooltip="Filter use regex such as defined in <https://www.w3.org/TR/xpath-functions/#regex-syntax>,
  prepending '!' will act as a negative match" />
-              <ng-container *ngIf="col.field==='object' && allLangs && allLangs.length !== 0">
-                <p-multiSelect [options]="allLangs" appendTo="body" ></p-multiSelect>
-              </ng-container>
               <ng-container *ngIf="col.field==='object' && allDatatypes && allDatatypes.length !== 0">
-                <p-multiSelect [options]="allDatatypes" appendTo="body" optionLabel="Datatype"></p-multiSelect>
-
+                <p-multiSelect [options]="allDatatypes" appendTo="body" defaulstLabel="All Datatypes"></p-multiSelect>
+              </ng-container>
+              <ng-container *ngIf="col.field==='object' && allLangs && allLangs.length !== 0">
+                <p-multiSelect [options]="allLangs" appendTo="body" defaultLabel="All Languages"></p-multiSelect>
               </ng-container>
             </div>
           </th>

@@ -34,8 +34,9 @@
       </mat-chip-list>
     </div>
   </p-accordionTab>
-  <p-accordionTab header="Top elements" [disabled]="selectedGraphs.length == 0" [selected]="selectedGraphs.length !== 0">
+  <p-accordionTab header="Top elements" [disabled]="!validEndpoint" [selected]="validEndpoint">
     <ng-container *ngIf="selectedGraphs.length > 0">
+    </ng-container>
       <div class="input-group mb-3">
         <select [(ngModel)]="chosenInheritanceFormat" placeholder="Ontology inheritence format..." class="form-control" required
           name="ontlogyType" #ontologyType="ngModel">
@@ -47,7 +48,7 @@
             roots elements</button>
         </div>
       </div>
-    </ng-container>
+
     <div style="max-height: 300px; position: relative;  overflow-x:hidden">
       <mat-chip-list *ngIf="rootsElements">
         <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of rootsElements" (click)="selectedRoot(uniqueIdentifier)" [attr.data-id]="uniqueIdentifier.uri">
@@ -61,7 +62,7 @@
 
 
 
-<ng-container *ngIf="lastClikedUri">
+<ng-container *ngIf="validEndpoint">
   <br/>
   <!-- <app-datatable-test></app-datatable-test> -->
   <app-browser [selectedUri]="lastClikedUri" [sparqlEndpoint]="loadedOntology" [rootRestrictions]="selectedRoots" 

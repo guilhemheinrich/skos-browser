@@ -120,14 +120,21 @@ export class BrowserComponent implements OnInit {
     //   } }
     //   }
 
+    let describeQuery = [
+      `?subject ?predicate ?object  VALUES (?subject) {( <${uri}>)} `,
+      `?subject ?predicate ?object  VALUES (?predicate) {( <${uri}>)} `,
+      `?subject ?predicate ?object  VALUES (?object) {( <${uri}>)} `,
+
+    ]
+
     // Problem : wraping it in a graph is need to work with the actual filter clause ... but it will not work with the graph restriction then
 
-    let describeQuery = `
-    ?subject ?predicate ?object
-    VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
-      (UNDEF <${uri}> UNDEF )
-      (UNDEF UNDEF <${uri}> ) }
-        `;
+    // let describeQuery = `
+    // ?subject ?predicate ?object
+    // VALUES (?subject ?predicate ?object) {( <${uri}> UNDEF UNDEF )
+    //   (UNDEF <${uri}> UNDEF )
+    //   (UNDEF UNDEF <${uri}> ) }
+    //     `;
     return describeQuery;
   }
 
@@ -156,7 +163,14 @@ export class BrowserComponent implements OnInit {
   }
 
   searchUri(uri: string) {
-    let finalQuery = `SELECT DISTINCT * WHERE { ${Ontology.graphRestriction(this.graphRestrictions, this.skeleton(uri), this.complementaryGraph)} }`;
+    let finalQuery = `SELECT DISTINCT * WHERE {
+      ${  this.skeleton(uri).map((skeletonPart) => {
+        return Ontology.graphRestriction(this.graphRestrictions, skeletonPart, this.complementaryGraph)
+      }
+      ).map((restrictedGraph) => {
+        return '{ SELECT ?subject ?predicate ?object WHERE { ' + restrictedGraph + ' } }'
+      }).join(' UNION ')}
+    }`;
     console.log(finalQuery);
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
     let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);
@@ -210,12 +224,22 @@ export class BrowserComponent implements OnInit {
     })
     this.allDatatypes = [];
     tmpSetAllDatatypes.forEach((dataset) => {
+
       this.allDatatypes.push({ label: this.shortenUriPipe.transform(dataset), value: dataset });
     })
   }
 
   onChangeFilter() {
-    let tmpQuery = `${Ontology.graphRestriction(this.graphRestrictions, this.skeleton(this.selectedUri), this.complementaryGraph)}`
+    // let tmpQuery = `${Ontology.graphRestriction(this.graphRestrictions, this.skeleton(this.selectedUri), this.complementaryGraph)}`
+    let tmpQuery = `SELECT DISTINCT * WHERE {
+      ${  this.skeleton(this.selectedUri).map((skeletonPart) => {
+        return Ontology.graphRestriction(this.graphRestrictions, skeletonPart, this.complementaryGraph)
+      }
+      ).map((restrictedGraph) => {
+        return '{ SELECT ?subject ?predicate ?object WHERE { ' + restrictedGraph + ' } }'
+      }).join(' UNION ')}
+    }`;
+
     let finalQuery = `SELECT DISTINCT * WHERE { 
       {SELECT * WHERE { ${tmpQuery} } } ${this.filterOperation()} 
     }`;
@@ -237,8 +261,8 @@ export class BrowserComponent implements OnInit {
     let finalQuery = "";
     finalQuery = `
     SELECT DISTINCT ?subject ?predicate ?object WHERE {
-      ${tmpQuery} }
-      }
+      ${tmpQuery}
+    }
     `;
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
     let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);

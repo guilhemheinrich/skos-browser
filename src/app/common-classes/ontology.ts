@@ -40,6 +40,9 @@ export function upper(ontolgyTypes?: string[]) {
 
 
 export function graphRestriction(graphsUri: UniqueIdentifier[], graphDefinition: string, negativeRestriction = false) {
+    if (graphsUri.length == 0) {
+        return graphDefinition;
+    }
     let newGraphDefinition = '';
     if (negativeRestriction) {
         newGraphDefinition = graphDefinition + ' FILTER NOT EXISTS { GRAPH ?graph {' + graphDefinition + '} VALUES ?graph {';
