@@ -27,6 +27,9 @@ import {TooltipModule} from 'primeng/tooltip';
 import {AccordionModule} from 'primeng/accordion';
 import {ToolbarModule} from 'primeng/toolbar';
 import {MultiSelectModule} from 'primeng/multiselect';
+import {ToastModule} from 'primeng/toast';
+import {MessageService} from 'primeng/api';
+
 import { DatatableTestComponent } from './datatable-test/datatable-test.component';
 
 @NgModule({
@@ -53,11 +56,16 @@ import { DatatableTestComponent } from './datatable-test/datatable-test.componen
     TooltipModule,
     AccordionModule,
     ToolbarModule,
-    MultiSelectModule
+    MultiSelectModule,
+    ToastModule,
+
         // DataTablesModule
   ],
   providers: [
-    ShortenUriPipe
+    ShortenUriPipe,
+    ToastModule,
+    MessageService,
+
   ],
   bootstrap: [AppComponent]
 })

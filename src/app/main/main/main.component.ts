@@ -5,6 +5,7 @@ import { SessionStorageService, SessionStorage } from 'ngx-webstorage';
 import { UniqueIdentifier } from 'src/app/common-classes/uniqueIdentifier';
 import * as Ontology from '../../common-classes/ontology';
 import { GlobalVariables } from '../../configuration';
+import {MessageService} from 'primeng/api';
 
 @Component({
   selector: 'app-main',
@@ -45,6 +46,7 @@ export class MainComponent implements OnInit {
     private sparqlClient: SparqlClientService,
     private sparqlParser: SparqlParserService,
     private sessionSt: SessionStorageService,
+    private messageService: MessageService
   ) {
     if (this.negativeRestriction === null) {
       this.negativeRestriction = false;
@@ -204,7 +206,12 @@ export class MainComponent implements OnInit {
     this.allGraphs = [];
     this.selectedGraphs = [];
     this.checkData();
-    // this.findAllNamedGraph();
+    this.findAllNamedGraph();
+    this.messageService.add({
+      severity:'success',
+       summary:'Load Endpoint',
+       detail:'Endpoint successfully reached'
+      });
     // this.findAllPredicates();
   }
 
@@ -221,7 +228,7 @@ export class MainComponent implements OnInit {
   checkData() {
     let checkValid = `
     SELECT * WHERE { ?s ?p ?o } LIMIT 1
-    `
+    ` 
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let checksResults = this.sparqlClient.queryByUrlEncodedPost(checkValid);
     checksResults.subscribe((response) => {

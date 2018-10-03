@@ -1142,15 +1142,4 @@ namespace sparl_grammar {
             WS: WS.regex
         })
      }
-
-
-
-
-
-
-
-
-
-
-
 }
