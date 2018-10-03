@@ -29,6 +29,9 @@ export class BrowserComponent implements OnInit {
   @Input('selectedUri')
   selectedUri: string;
 
+  @Input('gatheringRequest')
+  lastGatheringRequest: string;
+  
   previousUri: string;
   searchField: string;
   filter = {
@@ -160,13 +163,14 @@ export class BrowserComponent implements OnInit {
   }
 
   searchUri(uri: string) {
-    let finalQuery = `SELECT DISTINCT * WHERE {
-      ${  this.skeleton(uri).map((skeletonPart) => {
-        return Ontology.graphRestriction(this.graphRestrictions, skeletonPart, this.complementaryGraph)
-      }
-      ).map((restrictedGraph) => {
-        return '{ SELECT ?subject ?predicate ?object WHERE { ' + restrictedGraph + ' } }'
-      }).join(' UNION ')}
+    this.lastGatheringRequest = this.skeleton(uri).map((skeletonPart) => {
+      return Ontology.graphRestriction(this.graphRestrictions, skeletonPart, this.complementaryGraph)
+    }
+    ).map((restrictedGraph) => {
+      return '{ SELECT ?subject ?predicate ?object WHERE { ' + restrictedGraph + ' } }'
+    }).join(' UNION ');
+    let finalQuery = `SELECT DISTINCT ?subject ?predicate ?object WHERE {
+      ${  this.lastGatheringRequest}
     }`;
     console.log(finalQuery);
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
@@ -227,7 +231,7 @@ export class BrowserComponent implements OnInit {
   }
 
   onChangeFilter() {
-    let tmpQuery = `SELECT DISTINCT * WHERE {
+    let tmpQuery = `SELECT DISTINCT ?subject ?predicate ?object WHERE {
       ${  this.skeleton(this.selectedUri).map((skeletonPart) => {
         return Ontology.graphRestriction(this.graphRestrictions, skeletonPart, this.complementaryGraph)
       }
@@ -236,8 +240,8 @@ export class BrowserComponent implements OnInit {
       }).join(' UNION ')}
     }`;
 
-    let finalQuery = `SELECT DISTINCT * WHERE { 
-      {SELECT * WHERE { ${tmpQuery} } } ${this.filterOperation()} 
+    let finalQuery = `SELECT DISTINCT ?subject ?predicate ?object WHERE { 
+      {SELECT ?subject ?predicate ?object WHERE { ${this.lastGatheringRequest} } } ${this.filterOperation()} 
     }`;
 
     this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
@@ -249,6 +253,7 @@ export class BrowserComponent implements OnInit {
   }
 
   browse() {
+
     let tmpQuery = `
     { SELECT ?subject ?predicate ?object WHERE { ${Ontology.graphRestriction(this.graphRestrictions, '?subject ?predicate ?object', this.complementaryGraph)} .  FILTER regex(STR(?subject),"${this.searchField}","i") } }
     UNION { SELECT ?subject ?predicate ?object WHERE { ${Ontology.graphRestriction(this.graphRestrictions, '?subject ?predicate ?object', this.complementaryGraph)} .  FILTER regex(STR(?predicate),"${this.searchField}","i") } }
@@ -267,7 +272,25 @@ export class BrowserComponent implements OnInit {
       /* not robust : we assume that the outputs are "?subject", "?predicate" and "?object"
       in order to parse them
       */
-      this.parseResult(response);
+     this.parseResult(response);
+     this.lastGatheringRequest = tmpQuery;
+
+    });
+  }
+
+  executeLastRequest() {
+    let finalQuery = `SELECT DISTINCT ?subject ?predicate ?object WHERE {
+      ${  this.lastGatheringRequest}
+    }`;
+    this.sparqlClient.sparqlEndpoint = this.sparqlEndpoint;
+    let result = this.sparqlClient.queryByUrlEncodedPost(finalQuery);
+    console.log(finalQuery);
+    result.subscribe((response) => {
+      /* not robust : we assume that the outputs are "?subject", "?predicate" and "?object"
+      in order to parse them
+      */
+     this.parseResult(response);
+
     });
   }
 }

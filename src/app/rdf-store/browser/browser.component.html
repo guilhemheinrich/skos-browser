@@ -8,17 +8,17 @@
       </button>
     </div>
   </div>
-  <div class="input-group mb-3">
+  <!-- <button [disabled]="lastGatheringRequest === undefined" (click)=" executeLastRequest();" class="btn btn-secondary">
+    Back
+  </button> -->
+  <!-- <div class="input-group mb-3">
     <div class="input-group-prepend">
       <span class="input-group-text">Current subject</span>
       <span class="input-group-text">{{selectedUri}}</span>
     </div>
     <div class="input-group-append">
-      <button [disabled]="previousUri === undefined" (click)="onClickTerm(previousUri);" class="btn btn-secondary">
-        Back
-      </button>
     </div>
-  </div>
+  </div> -->
 
   <div style="padding-bottom: 40px">
     <p-table [columns]="columns" [value]="this.allTriples" [scrollable]="true" scrollHeight="800px">

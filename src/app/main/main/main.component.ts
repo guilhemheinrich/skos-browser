@@ -6,6 +6,8 @@ import { UniqueIdentifier } from 'src/app/common-classes/uniqueIdentifier';
 import * as Ontology from '../../common-classes/ontology';
 import { GlobalVariables } from '../../configuration';
 import { MessageService } from 'primeng/api';
+import { throwError } from 'rxjs';
+
 
 @Component({
   selector: 'app-main',
@@ -66,8 +68,12 @@ export class MainComponent implements OnInit {
     if (this.validEndpoint === null) {
       this.validEndpoint = false;
     }
+    if (this.chosenInheritanceFormat === null) {
+      this.chosenInheritanceFormat = "owl-rdf";
+    }
     this.inheritanceFormat = Object.keys(GlobalVariables.HIERACHICAL_STRUCTURE);
-    this.inheritanceFormat.push('Raw');
+    // this.inheritanceFormat.push('Raw');
+
     console.log(this.selectedRoots);
   }
 
@@ -208,24 +214,52 @@ export class MainComponent implements OnInit {
     this.selectedRoots = [];
     this.allGraphs = [];
     this.selectedGraphs = [];
-    this.checkData();
-    this.findAllNamedGraph();
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Load Endpoint',
-      detail: 'Endpoint successfully reached'
-    });
-    // this.findAllPredicates();
+    let checkObservable = this.checkData();
+    checkObservable.toPromise().then(
+      (success) => {
+        this.validEndpoint = true;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Endpoint',
+          detail: 'Endpoint successfully reached'
+        })
+        let graphResults = this.findAllNamedGraph();
+        console.log(this.allGraphs)
+        graphResults.subscribe((response => {
+          this.allGraphs = response['results']['bindings'].map((element) => {
+            return { uri: element.graph.value, name: element.graph.value };
+          })
+          if (this.allGraphs && Array.isArray(this.allGraphs) && this.allGraphs.length > 0) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Named Graphs',
+              detail: 'Named graphs founded and loaded'
+            })
+          } else {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Named Graphs',
+              detail: 'No named graphs founded'
+            })
+          }
+        }));
+      },
+      (fail) => {
+        this.validEndpoint = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Endpoint',
+          detail: 'Something went wrong. You may consider to open the debug console'
+        })
+      }
+    )
+    // this.findAllNamedGraph();
+
+
   }
 
   loadRootsElements() {
     this.findAllRootElements();
-    // let predicatesResults = this.findAllPredicates();
-    // predicatesResults.subscribe((response => {
-    //   this.predicatesElements = response['results']['bindings'].map((element) => {
-    //     return { predicateUri: element.predicate.value, number: element.count.value };
-    //   });
-    // }));
   }
 
   checkData() {
@@ -234,10 +268,7 @@ export class MainComponent implements OnInit {
     `
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let checksResults = this.sparqlClient.queryByUrlEncodedPost(checkValid);
-    checksResults.subscribe((response) => {
-      // console.log(response)
-      this.validEndpoint = (response['results']['bindings'].length == 1);
-    })
+    return checksResults;
   }
 
   findAllNamedGraph() {
@@ -248,11 +279,13 @@ export class MainComponent implements OnInit {
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let graphResults = this.sparqlClient.queryByUrlEncodedPost(allNamedGraphQuery);
     console.log(allNamedGraphQuery)
-    graphResults.subscribe((response => {
-      this.allGraphs = response['results']['bindings'].map((element) => {
-        return { uri: element.graph.value, name: element.graph.value };
-      })
-    }));
+    // graphResults.subscribe((response => {
+    //   console.log(response);
+    //   this.allGraphs = response['results']['bindings'].map((element) => {
+    //     return { uri: element.graph.value, name: element.graph.value };
+    //   })
+    // }));
+    return graphResults;
   }
 
   findAllRootElements() {
@@ -335,7 +368,6 @@ export class MainComponent implements OnInit {
   }
 
   clear() {
-    // this.loadedOntology = '';
     this.rootsElements = [];
     this.selectedRoots = [];
     this.allGraphs = [];
