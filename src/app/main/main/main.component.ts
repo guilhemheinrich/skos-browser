@@ -5,7 +5,7 @@ import { SessionStorageService, SessionStorage } from 'ngx-webstorage';
 import { UniqueIdentifier } from 'src/app/common-classes/uniqueIdentifier';
 import * as Ontology from '../../common-classes/ontology';
 import { GlobalVariables } from '../../configuration';
-import {MessageService} from 'primeng/api';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-main',
@@ -17,7 +17,7 @@ export class MainComponent implements OnInit {
   @SessionStorage('loadedOntology')
   loadedOntology: string;
   @SessionStorage('validEndpoint')
-  validEndpoint: boolean = false;
+  validEndpoint: boolean;
 
   @SessionStorage('allGraphs')
   allGraphs: UniqueIdentifier[];
@@ -62,6 +62,9 @@ export class MainComponent implements OnInit {
     }
     if (this.selectedGraphs === null) {
       this.selectedGraphs = [];
+    }
+    if (this.validEndpoint === null) {
+      this.validEndpoint = false;
     }
     this.inheritanceFormat = Object.keys(GlobalVariables.HIERACHICAL_STRUCTURE);
     this.inheritanceFormat.push('Raw');
@@ -208,10 +211,10 @@ export class MainComponent implements OnInit {
     this.checkData();
     this.findAllNamedGraph();
     this.messageService.add({
-      severity:'success',
-       summary:'Load Endpoint',
-       detail:'Endpoint successfully reached'
-      });
+      severity: 'success',
+      summary: 'Load Endpoint',
+      detail: 'Endpoint successfully reached'
+    });
     // this.findAllPredicates();
   }
 
@@ -228,7 +231,7 @@ export class MainComponent implements OnInit {
   checkData() {
     let checkValid = `
     SELECT * WHERE { ?s ?p ?o } LIMIT 1
-    ` 
+    `
     this.sparqlClient.sparqlEndpoint = this.loadedOntology;
     let checksResults = this.sparqlClient.queryByUrlEncodedPost(checkValid);
     checksResults.subscribe((response) => {
@@ -284,9 +287,16 @@ export class MainComponent implements OnInit {
         FILTER  (lang(?label) = 'en')
       }
       FILTER NOT EXISTS {?god skos:narrower ?firstBorn}
-    }
       `
         break;
+      default:
+        graphDefinition = `
+        ?individual a ?firstBorn
+        OPTIONAL {
+          ?firstBorn skos:prefLabel ?label .
+          FILTER  (lang(?label) = 'en')
+        }
+        `
 
     }
     let allRootsQuery = `
@@ -325,14 +335,14 @@ export class MainComponent implements OnInit {
   }
 
   clear() {
-    this.loadedOntology = '';
+    // this.loadedOntology = '';
     this.rootsElements = [];
     this.selectedRoots = [];
     this.allGraphs = [];
     this.selectedGraphs = [];
     this.negativeRestriction = false;
     this.graphSelectorAllState = false;
-    this.validEndpoint = true;
+    this.validEndpoint = false;
     $('#selUnselButton').removeClass('active');
     $('#negRestrictButton').removeClass('active');
   }

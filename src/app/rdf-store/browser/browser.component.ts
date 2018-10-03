@@ -60,19 +60,16 @@ export class BrowserComponent implements OnInit {
   }
 
   ngOnInit() {
-    let result = this.searchUri(this.selectedUri);
-    result.subscribe((response) => {
-      this.parseResult(response);
-    });
   }
 
 
   ngOnChanges() {
-
-    let result = this.searchUri(this.selectedUri);
-    result.subscribe((response) => {
-      this.parseResult(response);
-    });
+    if (this.selectedUri) {
+      let result = this.searchUri(this.selectedUri);
+      result.subscribe((response) => {
+        this.parseResult(response);
+      });
+    }
     // Reset the filter
     this.filter = {
       "subject": "",
@@ -91,7 +88,7 @@ export class BrowserComponent implements OnInit {
 
 
   /*
-  Done with <http://tools.medialab.sciences-po.fr/iwanthue/>
+  Color generated with <http://tools.medialab.sciences-po.fr/iwanthue/>
   */
   setColorStyle(rdfAndValue: Ontology.RDFValueAndType) {
     if (rdfAndValue.type === Ontology.RDFType.Literal || rdfAndValue.type === Ontology.RDFType.Typed_literal) {
@@ -230,7 +227,6 @@ export class BrowserComponent implements OnInit {
   }
 
   onChangeFilter() {
-    // let tmpQuery = `${Ontology.graphRestriction(this.graphRestrictions, this.skeleton(this.selectedUri), this.complementaryGraph)}`
     let tmpQuery = `SELECT DISTINCT * WHERE {
       ${  this.skeleton(this.selectedUri).map((skeletonPart) => {
         return Ontology.graphRestriction(this.graphRestrictions, skeletonPart, this.complementaryGraph)

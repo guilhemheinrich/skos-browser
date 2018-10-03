@@ -17,9 +17,9 @@
   <p-accordionTab header="Graphs" [disabled]="allGraphs && allGraphs.length == 0" [selected]="allGraphs && allGraphs.length !== 0">
 
     <div class="btn-group" role="group">
-      <button id="selUnselButton" type="button" class="btn btn-outline-secondary" (click)="toggleSelectUnselectAll();">Select/Unselect
+      <button id="selUnselButton" type="button" class="btn btn-outline-secondary" (click)="toggleSelectUnselectAll();loadRootsElements();">Select/Unselect
         all</button>
-      <button id="negRestrictButton" type="button" class="btn btn-outline-secondary" (click)="toggleActiveState($event);toggleNegativeRestriction();">Complementary
+      <button id="negRestrictButton" type="button" class="btn btn-outline-secondary" (click)="toggleActiveState($event);toggleNegativeRestriction();loadRootsElements();">Complementary
         inclusion
       </button>
     </div>
@@ -27,9 +27,9 @@
     <br/>
     <div style="max-height: 200px; position: relative;  overflow-x:hidden">
       <mat-chip-list *ngIf="allGraphs">
-        <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier);selectUnselectAllGraphWatcher();"
+        <mat-chip class="mainRoot" *ngFor="let uniqueIdentifier of allGraphs" (click)="selectedGraph(uniqueIdentifier);selectUnselectAllGraphWatcher();loadRootsElements()"
           [attr.data-id]="uniqueIdentifier.uri">
-          {{uniqueIdentifier.name}}
+          {{uniqueIdentifier.name | shortenUri }}
         </mat-chip>
       </mat-chip-list>
     </div>
@@ -39,14 +39,10 @@
     </ng-container>
       <div class="input-group mb-3">
         <select [(ngModel)]="chosenInheritanceFormat" placeholder="Ontology inheritence format..." class="form-control" required
-          name="ontlogyType" #ontologyType="ngModel">
+          name="ontlogyType" #ontologyType="ngModel" (change)="loadRootsElements()">
           <option *ngFor="let type of inheritanceFormat;" value="{{ type }}"> {{ type }}</option>
         </select>
 
-        <div class="input-group-append">
-          <button type="button" class="btn btn-outline-secondary" [disabled]="!ontologyType.valid" (click)="loadRootsElements()">Show
-            roots elements</button>
-        </div>
       </div>
 
     <div style="max-height: 300px; position: relative;  overflow-x:hidden">
