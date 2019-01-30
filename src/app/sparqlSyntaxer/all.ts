@@ -1000,8 +1000,6 @@ namespace sparl_grammar {
 
 
 
-
-
     class BLANK_NODE_LABEL extends Terminals {
 
         structure: ['_:']

@@ -50,7 +50,8 @@
               <ng-container *ngIf="rowData[col.field].type === 'uri'; else litteralTemplate">
                 <a (click)="onClickTerm(rowData[col.field].value);" [pTooltip]="rowData[col.field].value"
                   tooltipPosition="bottom" prependTo="body" style="position: relative;">
-                  {{ rowData[col.field].value | shortenUri }}</a>
+                  <!-- {{ rowData[col.field].value | shortenUri }}</a> -->
+                  {{ rowData[col.field].value }}</a>
               </ng-container>
               <ng-template #litteralTemplate>
                 <span> {{ rowData[col.field].value }} </span>
